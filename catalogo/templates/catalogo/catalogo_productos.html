@@ -1,0 +1,16 @@
+{% extends 'tienda/base2.html'%}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Catálogo de Productos</h2>
+    <div class="row"> {% for producto in productos %} <div class="col-md-4 mb-4">
+            <div class="card h-100"> {% if producto.prod_imagen %} <img src="{% static 'tienda/img/' %}{{ producto.prod_imagen }}"
+                    class="card-img-top" alt="{{ producto.prod_nombre }}"> {% endif %} <div class="card-body">
+                    <h5 class="card-title">{{ producto.prod_nombre }} - {{ producto.prod_modelo }}</h5>
+                    <p class="card-text">{{ producto.prod_descripcion|truncatechars:100 }}</p> <a
+                        href="{% url 'detalle_catalogo' producto.prod_id %}" class="btn btn-primary">Ver detalles</a>
+                </div>
+            </div>
+        </div> {% endfor %} </div>
+</div> {% endblock %}
