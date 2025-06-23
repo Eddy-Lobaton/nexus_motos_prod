@@ -1,0 +1,104 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  display: flex; /* <--- ESTO AGREGA */
+}
+
+.sidebar {
+  /*height: 100vh;*/
+  background-color: #181f31;
+  color: white;
+  padding: 1rem;
+  width: 250px;
+  overflow-y: auto;
+  position: relative; /* Añadir esto para permitir posicionamiento absoluto interno */
+  height: auto; /* Asegura que la altura ocupe toda la pantalla */
+  display: flex;
+  flex-direction: column; /* Para que los elementos se ordenen verticalmente */
+}
+
+.sidebar a, .sidebar button {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+  text-decoration: underline;
+}
+
+.submenu a {
+  margin-left: 30px;
+  font-size: 0.9rem;
+  display: block;
+  padding: 0.3rem 0;
+}
+
+.main-content {
+  padding: 2rem;
+  background-color: #e5e5e5;
+  min-height: 100vh;
+  width: calc(100% - 250px); /* Ajustar el ancho correctamente */
+}
+
+.menu-icon {
+  margin-right: 10px;
+}
+
+.arrow-icon {
+  font-size: 0.8rem;
+}
+
+.alert-success {
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+  border-color: #badbcc !important;
+}
+
+.alert-danger, .alert-error {
+  background-color: #f8d7da !important;
+  color: #842029 !important;
+  border-color: #f5c2c7 !important;
+}
+
+.alert-warning {
+  background-color: #fff3cd !important;
+  color: #664d03 !important;
+  border-color: #ffecb5 !important;
+}
+
+.alert-info {
+  background-color: #cff4fc !important;
+  color: #055160 !important;
+  border-color: #b6effb !important;
+}
+
+.logout-container {
+  margin-top: auto; /* Empuja el logout al fondo */
+  padding-top: 1rem;
+}
+
+.sidebar .logout-button {
+  color: white;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important; /* <-- fuerza la alineación */
+  gap: 10px;
+  font-size: 1rem;
+}
+
+.logout-button:hover {
+  text-decoration: underline;
+}

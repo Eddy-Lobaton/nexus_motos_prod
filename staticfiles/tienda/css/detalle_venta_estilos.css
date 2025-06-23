@@ -1,0 +1,10 @@
+.foto {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border: 1px solid #ccc;
+}
+
+.tblArticulos td {
+    vertical-align: middle;
+}
