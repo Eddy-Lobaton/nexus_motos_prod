@@ -28,7 +28,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     
     # ARTICULOS-------------------
-    path('productos/',views.lista_productos, name= 'lista_productos'),
     path('lista_articulos/',views.lista_articulos, name= 'lista_articulos'),
     path('agregar_articulos/',views.agregar_articulos, name= 'agregar_articulos'),
     path('articulo/<int:producto_id>/', views.detalle_articulo, name='detalle_articulo'),
@@ -39,7 +38,6 @@ urlpatterns = [
     path('agregar_ingresos/',views.agregar_ingresos, name= 'agregar_ingresos'),
     path('validar_serie/', views.validar_serie, name='validar_serie'),
     path('ingreso/<int:ingreso_id>/', views.detalle_ingreso, name='detalle_ingreso'),
-
     # PROVEEDOR-------------------
     path('lista_proveedores/',views.lista_proveedores, name= 'lista_proveedores'),
     path('agregar_proveedor/',views.agregar_proveedor, name= 'agregar_proveedor'),
@@ -55,18 +53,15 @@ urlpatterns = [
     path('agregar_venta/',views.agregar_venta, name= 'agregar_venta'),
     path('venta/pdf/<int:venta_id>/', views.generar_pdf_venta, name='generar_pdf_venta'),
     path('venta/<int:venta_id>/', views.detalle_venta, name='detalle_venta'),
+    path('venta/registrar_pago/<int:cuota_id>/', views.registrar_pago, name='registrar_pago'),
     # SALIDAS-------------------
     path('lista_salidas/',views.lista_salidas, name= 'lista_salidas'),
     path('agregar_salida/',views.agregar_salida, name= 'agregar_salida'),
     # USUARIO-------------------
     path('lista_usuarios/',views.lista_usuarios, name= 'lista_usuarios'),
     path('agregar_usuario/',views.agregar_usuario, name= 'agregar_usuario'),
-    path('registrar/', views.registrar_usuario, name='registrar_usuario'),
     path('usuario/<int:id>/', views.detalle_usuario, name='detalle_usuario'),
     path('editar_usuario/<int:id>/', views.editar_usuario, name='editar_usuario'),
-    
-    
-
     # VALIDACIONES
     path('registrar/api/consultar-dni/', views.consultar_dni, name='consultar_dni'),
     path('registrar/verificar-username/', views.verificar_username, name='verificar_username'),
@@ -74,7 +69,6 @@ urlpatterns = [
     path('registrar/verificar-datos-cliente-bd/', views.verificar_datos_cliente, name='verificar_datos_cliente'),
     path('verificar-articulo-existe/', views.verificar_articulo_existe, name='verificar_articulo'),
     path('verificar-proveedor/', views.verificar_proveedor, name='verificar_proveedor'),
-
     #REPORTES-----------
     path('reporte_compras/', views.reporte_compras, name='reporte_compras'),
     path('filtrar-compras/', views.filtrar_compras, name='filtrar_compras'),
@@ -85,7 +79,6 @@ urlpatterns = [
     path('reporte_series_productos/', views.reporte_series_productos, name='reporte_series_productos'),
     path('buscar_series_productos/', views.buscar_series_productos, name='buscar_series_productos'),
     path('reporte_productos/', views.reporte_productos, name='reporte_productos'),
-
     #CATALOGO-------------
     path('catalogo/', include('catalogo.urls')),
 
