@@ -3,6 +3,12 @@ from django.http import HttpResponse
 from tienda.models import TblProducto
 
 
+def inicio(request):
+    """
+    Renderiza la página de inicio del catálogo.
+    """
+    return render(request, 'catalogo/inicio.html')
+
 def catalogo_productos(request):
     productos = TblProducto.objects.filter(prod_estado=True)
     return render(request, 'catalogo/catalogo_productos.html', {'productos': productos})
