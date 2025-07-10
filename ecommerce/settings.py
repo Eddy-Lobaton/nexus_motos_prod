@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tienda',
     'catalogo',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',  # para permitir conexiones desde Flutter
+    'app'
 ]
 
 MIDDLEWARE = [
@@ -56,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -161,3 +166,13 @@ CSRF_TRUSTED_ORIGINS = [
     # 'https://web-production-dbe1d.up.railway.app'
     'https://web-production-ec26b.up.railway.app'
 ]
+
+# Configuración básica de CORS
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Autenticación por JWT
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}

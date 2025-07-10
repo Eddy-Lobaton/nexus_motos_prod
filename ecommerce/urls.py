@@ -20,6 +20,9 @@ from tienda import views
 from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
+    # API REST
+    path('app', include('app.urls')),
+
     # HOMRE---------
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
