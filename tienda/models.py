@@ -167,6 +167,7 @@ class TblDetFinanciamiento(models.Model):
     det_finan_fch_pago_max = models.DateField()
     det_finan_fch_pago_realiza = models.DateField(blank=True, null=True)
     det_finan_estado_pago = models.CharField(max_length=9)
+    det_finan_comprob_imagen = models.CharField(max_length=255, blank=True, null=True)
     financia = models.ForeignKey('TblFinanciamiento', models.DO_NOTHING)
 
     class Meta:
@@ -301,7 +302,6 @@ class TblProveedor(models.Model):
     proveedor_telefono = models.CharField(max_length=45)
     proveedor_direccion = models.CharField(max_length=255)
     proveedor_email = models.CharField(max_length=255)
-    proveedor_prueba = models.CharField(max_length=45, blank=True, null=True)
     proveedor_fecha = models.DateTimeField(default=timezone.now)
 
     class Meta:

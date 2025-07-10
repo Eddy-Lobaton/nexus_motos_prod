@@ -126,14 +126,43 @@
                                         <th>N° Cuota</th>
                                         <th>Fecha de Pago</th>
                                         <th>Monto</th>
+                                        <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for cuota in detalle_financiamiento %}
                                     <tr>
-                                        <td>{{ cuota.det_finan_num_cuota }}</td>
-                                        <td>{{ cuota.det_finan_fch_pago_max|date:"d/m/Y" }}</td>
-                                        <td>S/ {{ cuota.det_finan_monto_cuota|floatformat:2 }}</td>
+                                        <td>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>{{ cuota.det_finan_num_cuota }}</span>
+                                                <span class="badge
+                                                {% if cuota.det_finan_estado_pago == 'PAGADO' and cuota.det_finan_comprob_imagen %}
+                                                    bg-success
+                                                {% else %}
+                                                    bg-warning
+                                                {% endif %}">
+                                                    {% if cuota.det_finan_estado_pago == 'PAGADO' and cuota.det_finan_comprob_imagen %}
+                                                        PAGADO
+                                                    {% else %}
+                                                        PENDIENTE
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="text-end">{{ cuota.det_finan_fch_pago_max|date:"d/m/Y" }}</td>
+                                        <td class="text-end">S/ {{ cuota.det_finan_monto_cuota|floatformat:2 }}</td>
+                                        <td class="text-center">
+                                            {% if cuota.det_finan_estado_pago == "PAGADO" and cuota.det_finan_comprob_imagen %}
+                                                <a href="#" class="btn btn-sm btn-icon btn-outline-primary btn-ver-pago" data-bs-toggle="modal" data-bs-target="#modalPago" data-tipo="ver" data-numero="{{ cuota.det_finan_num_cuota }}" data-imagen="{% static 'tienda/img/comprobantes/' %}{{ cuota.det_finan_comprob_imagen }}">
+                                                    <i class="bx bx-show"></i>
+                                                </a>
+                                            {% elif cuota.det_finan_id == primera_pend_id %}
+                                                <!-- Solo a la primera pendiente -->
+                                                <a href="#" class="btn btn-sm btn-icon btn-outline-primary btn-registrar-pago" data-bs-toggle="modal" data-bs-target="#modalPago" data-tipo="registrar" data-id="{{ cuota.det_finan_id }}" data-numero="{{ cuota.det_finan_num_cuota }}" data-monto="{{ cuota.det_finan_monto_cuota }}">
+                                                    <i class="bx bx-dollar"></i>
+                                                </a>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -146,4 +175,35 @@
         </div>
     </div>
 </div>
+
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<!-- Modal Pago -->
+<div class="modal fade" id="modalPago" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalPagoTitle"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body" id="modalPagoBody">
+        <!-- Aquí va el contenido dinámicamente -->
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock%}
+{% block extra_js %}
+<script>
+    const csrfToken = "{{ csrf_token }}";
+</script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="{% static 'tienda/js/detalle_venta.js' %}"></script>
+{% endblock %}

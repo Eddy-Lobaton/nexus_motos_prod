@@ -8,3 +8,12 @@
 .tblArticulos td {
     vertical-align: middle;
 }
+
+.swal2-container {
+  z-index: 2000 !important;
+}
+
+.img-pago {
+    max-height: 70vh; 
+    object-fit: contain;
+}

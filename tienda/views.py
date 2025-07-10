@@ -161,6 +161,11 @@ def login_view(request):
 
     return render(request, 'tienda/login.html', {'form': form})
 
+@login_required
+def signoup (request):
+    logout(request) 
+    return redirect('home')
+
 @require_GET
 @login_required
 def consultar_dni(request):
@@ -188,6 +193,20 @@ def consultar_dni(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+#### USUARIOS ####
+@login_required
+def lista_usuarios(request):
+    usuarios  = TblUsuario.objects.all()
+
+    context = {
+        'breadcrumbs': [['Usuarios', '']],
+        'menu_padre': 'accesos',
+        'menu_hijo': 'usuarios',
+        'usuarios': usuarios,
+    }
+
+    return render(request, 'tienda/lista_usuarios.html', context)
+
 @require_GET
 @login_required
 def verificar_username(request):
@@ -205,44 +224,66 @@ def verificar_datos(request):
     return JsonResponse({'existsDoc': existeDoc, 'existsEmail': existeEmail})
 
 @login_required
-def verificar_datos_cliente(request):
-    numDocClie = request.GET.get('numDocClien')
-    emailClie = request.GET.get('emailClien')
-    telefClie = request.GET.get('telefo')
-    existeDocClie = TblCliente.objects.filter(cliente_nrodocumento=numDocClie).exists() if numDocClie else False
-    existeEmailClie = TblCliente.objects.filter(cliente_email=emailClie).exists() if emailClie else False
-    existeTelefClie = TblCliente.objects.filter(cliente_telefono=telefClie).exists() if telefClie else False
-
-    return JsonResponse({'existeDocCliente': existeDocClie, 'existsEmailCliente': existeEmailClie, 'existsTelefCliente': existeTelefClie})
-
-@login_required
-def registrar_usuario(request):
+def agregar_usuario(request):
     if request.method == 'POST':
-        form = RegistroUsuarioForm(request.POST)
+        form = RegistroUsuarioForm(request.POST, request.FILES)
         if form.is_valid():
-
-            form.save()
-            messages.success(request, 'Usuario registrado exitosamente.')
-            return redirect('login')  # o a donde quieras redirigir después
+            try:
+                usuario = form.save(commit=False)
+                usuario.save()
+                return redirect('lista_usuarios')
+            except Exception as e:
+                print(f'Error al guardar el usuario: {e}')  # Esto mostrará el error exacto
         else:
-            messages.error(request, 'Por favor corrige los errores.')
+            print('Formulario inválido:', form.errors)
     else:
         form = RegistroUsuarioForm()
-    return render(request, 'tienda/registro.html', {'form': form})
+
+    context = {
+        'breadcrumbs': [['Usuarios','/lista_usuarios/'],['Registro de nuevo usuario','']],
+        'menu_padre': 'accesos',
+        'menu_hijo': 'usuarios',
+        'form': form,
+    }
+    return render(request, 'tienda/agregar_usuario.html', context)
 
 @login_required
-def signoup (request):
-    logout(request) 
-    return redirect('home')
+def editar_usuario(request, id):
+    usuario = get_object_or_404(TblUsuario, id=id)
+
+    if request.method == 'POST':
+        form = EditarUsuarioForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_usuarios')
+        else:
+            print(form.errors)
+    else:
+        form = EditarUsuarioForm(instance=usuario)
+
+    context = {
+        'breadcrumbs': [],
+        'menu_padre': 'home',
+        'menu_hijo': '',
+        'form': form,
+        'usuario': usuario,
+    }
+    return render(request, 'tienda/editar_usuario.html', context)
 
 @login_required
-def lista_productos(request):
-    productos = TblProducto.objects.all()
-    paginator = Paginator(productos, 6)  # Mostrar 6 productos por página
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'tienda/productos.html', {'page_obj': page_obj})
+def detalle_usuario(request, id):
+    usuario = get_object_or_404(TblUsuario, pk=id)
+    
+    context = {
+        'breadcrumbs': [['Usuarios','/lista_usuarios/'],['Detalle de usuario','']],
+        'menu_padre': 'accesos',
+        'menu_hijo': 'usuarios',
+        'usuario': usuario,
+    }
 
+    return render(request, 'tienda/detalle_usuario.html', context)
+
+#### ARTICULOS ####
 @login_required
 def lista_articulos(request):
     productos = TblProducto.objects.all().select_related('tblkardex')
@@ -262,6 +303,14 @@ def lista_articulos(request):
     }
 
     return render(request, 'tienda/lista_articulos.html', context)
+
+@login_required
+def verificar_articulo_existe(request):
+    marca = request.GET.get('marca')
+    modelo = request.GET.get('modelo')
+
+    existe = TblProducto.objects.filter(prod_marca=marca, prod_modelo=modelo).exists()
+    return JsonResponse({'existe': existe})
 
 @login_required
 def agregar_articulos(request):
@@ -376,78 +425,7 @@ def cambiar_estado_articulo(request, producto_id):
     estado = "activado" if producto.prod_estado else "desactivado"
     return JsonResponse({"message": f'Artículo "{producto.prod_nombre}" ha sido {estado} correctamente.'})
 
-@login_required
-def editar_proveedor(request, prov_id):
-    proveedor = get_object_or_404(TblProveedor, proveedor_id = prov_id)
-    if request.method == 'POST':
-        form = ProveedorForm(request.POST, instance=proveedor)
-
-        if form.is_valid():
-            proveedor.save()
-            return redirect('lista_proveedores')
-            
-        else:
-            print(form.errors)
-    else:
-        form = ProveedorForm(instance=proveedor)
-
-    context = {
-        'breadcrumbs': [['Proveedores','/lista_proveedores/'],['Edición de proveedor','']],
-        'menu_padre': 'compras',
-        'menu_hijo': 'proveedores',
-        'form': form,
-        'proveedor': proveedor,
-    }
-
-    return render(request, 'tienda/editar_proveedor.html', context)
-
-@login_required
-def editar_cliente(request, clien_id):
-    cliente = get_object_or_404(TblCliente, cliente_id = clien_id)
-    if request.method == 'POST':
-        form = ClienteForm(request.POST, instance=cliente)
-
-        if form.is_valid():
-            cliente.save()
-            return redirect('lista_clientes')
-            
-        else:
-            print(form.errors)
-    else:
-        form = ClienteForm(instance=cliente)
-
-    context = {
-        'breadcrumbs': [['Clientes','/lista_clientes/'],['Edición de cliente','']],
-        'menu_padre': 'ventas',
-        'menu_hijo': 'clientes',
-        'form': form,
-        'cliente': cliente,
-    }
-    return render(request, 'tienda/editar_cliente.html', context)
-
-@login_required
-def editar_usuario(request, id):
-    usuario = get_object_or_404(TblUsuario, id=id)
-
-    if request.method == 'POST':
-        form = EditarUsuarioForm(request.POST, instance=usuario)
-        if form.is_valid():
-            form.save()
-            return redirect('lista_usuarios')
-        else:
-            print(form.errors)
-    else:
-        form = EditarUsuarioForm(instance=usuario)
-
-    context = {
-        'breadcrumbs': [],
-        'menu_padre': 'home',
-        'menu_hijo': '',
-        'form': form,
-        'usuario': usuario,
-    }
-    return render(request, 'tienda/editar_usuario.html', context)
-
+#### PROVEEDORES ####
 @login_required
 def lista_proveedores(request):
     proveedores = TblProveedor.objects.all()
@@ -460,6 +438,20 @@ def lista_proveedores(request):
     }
 
     return render(request, 'tienda/lista_proveedores.html', context)
+
+@login_required
+def verificar_proveedor(request):
+    nombre = request.GET.get('nombre')
+    ruc = request.GET.get('ruc')
+    email = request.GET.get('email')
+    telefono = request.GET.get('telefono')
+
+    existeNombre= TblProveedor.objects.filter(proveedor_nombre=nombre).exists() if nombre else False
+    existeRuc = TblProveedor.objects.filter(proveedor_ruc=ruc).exists() if ruc else False
+    existeEmail = TblProveedor.objects.filter(proveedor_email=email).exists() if email else False
+    existeTelefono = TblProveedor.objects.filter(proveedor_telefono=telefono).exists() if telefono else False
+
+    return JsonResponse({'existeEmail': existeEmail, 'existeNombre': existeNombre, 'existeRuc': existeRuc, 'existeTelefono': existeTelefono})
 
 @login_required
 def agregar_proveedor(request):
@@ -517,6 +509,31 @@ def agregar_proveedor(request):
     return render(request, 'tienda/agregar_proveedor.html', context)
 
 @login_required
+def editar_proveedor(request, prov_id):
+    proveedor = get_object_or_404(TblProveedor, proveedor_id = prov_id)
+    if request.method == 'POST':
+        form = ProveedorForm(request.POST, instance=proveedor)
+
+        if form.is_valid():
+            proveedor.save()
+            return redirect('lista_proveedores')
+            
+        else:
+            print(form.errors)
+    else:
+        form = ProveedorForm(instance=proveedor)
+
+    context = {
+        'breadcrumbs': [['Proveedores','/lista_proveedores/'],['Edición de proveedor','']],
+        'menu_padre': 'compras',
+        'menu_hijo': 'proveedores',
+        'form': form,
+        'proveedor': proveedor,
+    }
+
+    return render(request, 'tienda/editar_proveedor.html', context)
+
+@login_required
 def detalle_proveedor(request, prov_id):
     proveedor = get_object_or_404(TblProveedor, pk=prov_id)
     
@@ -529,19 +546,7 @@ def detalle_proveedor(request, prov_id):
 
     return render(request, 'tienda/detalle_proveedor.html', context)
 
-@login_required
-def detalle_cliente(request, clien_id):
-    cliente = get_object_or_404(TblCliente, pk=clien_id)
-    
-    context = {
-        'breadcrumbs': [['Clientes','/lista_clientes/'],['Detalle de cliente','']],
-        'menu_padre': 'ventas',
-        'menu_hijo': 'clientes',
-        'cliente': cliente,
-    }
-
-    return render(request, 'tienda/detalle_cliente.html', context)
-
+#### INGRESOS ####
 @login_required
 def lista_ingresos(request):
     ingresos = TblEntrada.objects.select_related(
@@ -708,6 +713,7 @@ def detalle_ingreso(request, ingreso_id):
         messages.error(request, f"Ocurrió un error: {str(e)}")
         return redirect("lista_ingresos")
 
+#### CLIENTES ####
 @login_required
 def lista_clientes(request):
     clientes = TblCliente.objects.all()
@@ -720,6 +726,17 @@ def lista_clientes(request):
     }
 
     return render(request, 'tienda/lista_clientes.html', context)
+
+@login_required
+def verificar_datos_cliente(request):
+    numDocClie = request.GET.get('numDocClien')
+    emailClie = request.GET.get('emailClien')
+    telefClie = request.GET.get('telefo')
+    existeDocClie = TblCliente.objects.filter(cliente_nrodocumento=numDocClie).exists() if numDocClie else False
+    existeEmailClie = TblCliente.objects.filter(cliente_email=emailClie).exists() if emailClie else False
+    existeTelefClie = TblCliente.objects.filter(cliente_telefono=telefClie).exists() if telefClie else False
+
+    return JsonResponse({'existeDocCliente': existeDocClie, 'existsEmailCliente': existeEmailClie, 'existsTelefCliente': existeTelefClie})
 
 @login_required
 def agregar_cliente(request):
@@ -775,14 +792,71 @@ def agregar_cliente(request):
     return render(request, 'tienda/agregar_cliente.html', context)
 
 @login_required
+def editar_cliente(request, clien_id):
+    cliente = get_object_or_404(TblCliente, cliente_id = clien_id)
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)
+
+        if form.is_valid():
+            cliente.save()
+            return redirect('lista_clientes')
+            
+        else:
+            print(form.errors)
+    else:
+        form = ClienteForm(instance=cliente)
+
+    context = {
+        'breadcrumbs': [['Clientes','/lista_clientes/'],['Edición de cliente','']],
+        'menu_padre': 'ventas',
+        'menu_hijo': 'clientes',
+        'form': form,
+        'cliente': cliente,
+    }
+    return render(request, 'tienda/editar_cliente.html', context)
+
+@login_required
+def detalle_cliente(request, clien_id):
+    cliente = get_object_or_404(TblCliente, pk=clien_id)
+    
+    context = {
+        'breadcrumbs': [['Clientes','/lista_clientes/'],['Detalle de cliente','']],
+        'menu_padre': 'ventas',
+        'menu_hijo': 'clientes',
+        'cliente': cliente,
+    }
+
+    return render(request, 'tienda/detalle_cliente.html', context)
+
+#### VENTAS ####
+@login_required
 def lista_ventas(request):
-    ventas = TblVenta.objects.select_related('cliente', 'usuario', 'metodo_pago').all()
+    ventas = TblVenta.objects.select_related('cliente', 'usuario', 'metodo_pago').prefetch_related('tblfinanciamiento_set')
+
+    ventas_estado = []
+    for venta in ventas:
+        metodo = venta.metodo_pago.metodo_pago_descrip.lower()
+        if metodo == 'efectivo':
+            estado = 'PAGADO'
+        else:
+            financiamientos = venta.tblfinanciamiento_set.all()
+            if not financiamientos.exists():
+                estado = 'PAGADO'
+            elif all(f.financia_estado == 'PAGADO' for f in financiamientos):
+                estado = 'PAGADO'
+            else:
+                estado = 'PENDIENTE'
+        
+        ventas_estado.append({
+            'venta': venta,
+            'estado': estado,
+        })
 
     context = {
         'breadcrumbs': [['Ventas', '']],
         'menu_padre': 'ventas',
         'menu_hijo': 'ventas',
-        'ventas': ventas,
+        'ventas_estado': ventas_estado,
     }
 
     return render(request, 'tienda/lista_ventas.html', context)
@@ -1070,7 +1144,14 @@ def detalle_venta(request, venta_id):
         venta = get_object_or_404(TblVenta, pk=venta_id)
         detalle_venta = TblDetVenta.objects.filter(venta=venta).select_related('prod')
         financiamiento = TblFinanciamiento.objects.filter(venta=venta).first()
-        detalle_financiamiento = TblDetFinanciamiento.objects.filter(financia=financiamiento) if financiamiento else []
+        detalle_financiamiento = TblDetFinanciamiento.objects.filter(financia=financiamiento).order_by('det_finan_fch_pago_max') if financiamiento else []
+
+        # Obtener la primera cuota pendiente
+        primera_pend_id = None
+        for cuota in detalle_financiamiento:
+            if cuota.det_finan_estado_pago=="PENDIENTE" and not cuota.det_finan_comprob_imagen:
+                primera_pend_id = cuota.det_finan_id
+                break
 
         descuento_total = sum(item.det_venta_dcto for item in detalle_venta)
 
@@ -1082,6 +1163,7 @@ def detalle_venta(request, venta_id):
             'detalle_venta': detalle_venta,
             'financiamiento': financiamiento,
             'detalle_financiamiento': detalle_financiamiento,
+            'primera_pend_id': primera_pend_id,
             'descuento_total': descuento_total,
         }
         return render(request, 'tienda/detalle_venta.html', context)
@@ -1092,6 +1174,53 @@ def detalle_venta(request, venta_id):
         messages.error(request, f"Ocurrió un error: {str(e)}")
         return redirect("lista_ventas")
 
+@require_POST
+@login_required
+def registrar_pago(request, cuota_id):
+    try:
+        cuota = TblDetFinanciamiento.objects.get(pk=cuota_id)
+        imagen = request.FILES.get("imagen_pago")
+
+        if imagen:
+            extensiones_permitidas = ['.jpg', '.jpeg', '.png']
+            nombre_archivo = imagen.name.lower()
+            if not any(nombre_archivo.endswith(ext) for ext in extensiones_permitidas):
+                return JsonResponse({"status": "error", "message": "Formato de imagen no permitido."}, status=400)
+
+            ruta_destino = os.path.join(settings.BASE_DIR, 'staticfiles', 'tienda', 'img', 'comprobantes')
+            os.makedirs(ruta_destino, exist_ok=True)
+            path_final = os.path.join(ruta_destino, imagen.name)
+
+            with open(path_final, 'wb+') as destino:
+                        for chunk in imagen.chunks():
+                            destino.write(chunk)
+            
+            cuota.det_finan_comprob_imagen = imagen.name  # solo el nombre del archivo
+            cuota.det_finan_estado_pago = "PAGADO"
+            cuota.det_finan_fch_pago_realiza = date.today()
+            cuota.save()
+
+            # Verificar si todas las cuotas están pagadas
+            todas_pagadas = not TblDetFinanciamiento.objects.filter(
+                financia=cuota.financia,
+                det_finan_estado_pago='PENDIENTE',
+                det_finan_comprob_imagen__isnull=True
+            ).exists()
+
+            if todas_pagadas:
+                cuota.financia.financia_estado = "PAGADO"
+                cuota.financia.save()
+            
+            return JsonResponse({"status": "success", "message": "Pago registrado correctamente."})
+        else:
+            return JsonResponse({"status": "error", "message": "Debe subir una imagen."}, status=400)
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "message": f"Ocurrió un error al registrar el pago: {str(e)}"}, status=500)
+
+
+#### SALIDAS ####
 @login_required
 def lista_salidas(request):
     salidas = TblSalida.objects.select_related('tipo_doc_almacen', 'usuario').all()
@@ -1209,78 +1338,7 @@ def agregar_salida(request):
 
     return render(request, 'tienda/agregar_salida.html', context)
 
-@login_required
-def lista_usuarios(request):
-    usuarios  = TblUsuario.objects.all()
-
-    context = {
-        'breadcrumbs': [['Usuarios', '']],
-        'menu_padre': 'accesos',
-        'menu_hijo': 'usuarios',
-        'usuarios': usuarios,
-    }
-
-    return render(request, 'tienda/lista_usuarios.html', context)
-
-@login_required
-def agregar_usuario(request):
-    if request.method == 'POST':
-        form = RegistroUsuarioForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                usuario = form.save(commit=False)
-                usuario.save()
-                return redirect('lista_usuarios')
-            except Exception as e:
-                print(f'Error al guardar el usuario: {e}')  # Esto mostrará el error exacto
-        else:
-            print('Formulario inválido:', form.errors)
-    else:
-        form = RegistroUsuarioForm()
-
-    context = {
-        'breadcrumbs': [['Usuarios','/lista_usuarios/'],['Registro de nuevo usuario','']],
-        'menu_padre': 'accesos',
-        'menu_hijo': 'usuarios',
-        'form': form,
-    }
-    return render(request, 'tienda/agregar_usuario.html', context)
-
-@login_required
-def detalle_usuario(request, id):
-    usuario = get_object_or_404(TblUsuario, pk=id)
-    
-    context = {
-        'breadcrumbs': [['Usuarios','/lista_usuarios/'],['Detalle de usuario','']],
-        'menu_padre': 'accesos',
-        'menu_hijo': 'usuarios',
-        'usuario': usuario,
-    }
-
-    return render(request, 'tienda/detalle_usuario.html', context)
-
-@login_required
-def verificar_articulo_existe(request):
-    marca = request.GET.get('marca')
-    modelo = request.GET.get('modelo')
-
-    existe = TblProducto.objects.filter(prod_marca=marca, prod_modelo=modelo).exists()
-    return JsonResponse({'existe': existe})
-
-@login_required
-def verificar_proveedor(request):
-    nombre = request.GET.get('nombre')
-    ruc = request.GET.get('ruc')
-    email = request.GET.get('email')
-    telefono = request.GET.get('telefono')
-
-    existeNombre= TblProveedor.objects.filter(proveedor_nombre=nombre).exists() if nombre else False
-    existeRuc = TblProveedor.objects.filter(proveedor_ruc=ruc).exists() if ruc else False
-    existeEmail = TblProveedor.objects.filter(proveedor_email=email).exists() if email else False
-    existeTelefono = TblProveedor.objects.filter(proveedor_telefono=telefono).exists() if telefono else False
-
-    return JsonResponse({'existeEmail': existeEmail, 'existeNombre': existeNombre, 'existeRuc': existeRuc, 'existeTelefono': existeTelefono})
-
+#### REPORTES ####
 @login_required
 def reporte_compras(request):
     proveedores = TblProveedor.objects.all()
@@ -1401,7 +1459,6 @@ def reporte_mov_productos(request):
         messages.error(request, f"Ocurrió un error: {str(e)}")
         return redirect("home")
 
-
 def buscar_movimientos(request):
     if request.method == 'POST':
         data = []
@@ -1511,7 +1568,6 @@ def reporte_series_productos(request):
     }
 
     return render(request, 'tienda/reporte_series_productos.html', context)
-
 
 def buscar_series_productos(request):
     if request.method == 'POST':
