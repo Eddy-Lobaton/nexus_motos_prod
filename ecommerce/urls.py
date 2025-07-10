@@ -21,7 +21,7 @@ from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     # API REST
-    path('app', include('app.urls')),
+    path('app/', include('app.urls')),
 
     # HOMRE---------
     path('admin/', admin.site.urls),
