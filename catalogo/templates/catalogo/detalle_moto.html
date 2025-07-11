@@ -1,0 +1,60 @@
+{% extends 'catalogo/base.html'%}
+{% load static %}
+
+{% block extra_css %}
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="{% static 'catalogo/css/detalle_moto.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 mb-4">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center">
+                <img src="{% static 'tienda/img/' %}{{ producto.prod_imagen }}" alt="{{ producto.prod_nombre }}" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <h4 class="fw-bold">{{ producto.prod_modelo }}</h4>
+                <h3 class="text-primary fw-bold">S/. {{ precio|floatformat:2 }}</h3>
+                <p class="mt-3"><strong>Detalles:</strong><br>{{ producto.prod_descripcion }}</p>
+                <a href="{% url 'comprar_moto' producto.prod_id %}" class="btn btn-success mt-3">Comprar</a>
+            </div>
+        </div>
+
+        <!-- Productos relacionados -->
+        <div class="mt-5">
+            <h5 class="text-center mb-4">Productos relacionados</h5>
+
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    {% for rel in relacionados %}
+                        <div class="swiper-slide">
+                            <div class="card h-100">
+                                <img src="{% static 'tienda/img/' %}{{ rel.prod_imagen }}" class="card-img-top" alt="{{ rel.prod_nombre }}">
+                                <div class="card-body">
+                                    <h6 class="text-danger fw-bold">{{ rel.prod_marca }}</h6>
+                                    <p class="mb-1">{{ rel.prod_modelo }}</p>
+                                    <p class="fw-bold text-primary">S/. {{ rel.tblkardex.kardex_precio_vigente|floatformat:2 }}</p>
+                                    <a href="{% url 'detalle_moto' rel.prod_id %}" class="btn btn-sm btn-outline-primary mt-2">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Controles del slider -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock%}
+
+{% block extra_js %}
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="{% static 'catalogo/js/detalle_moto.js' %}"></script>
+{% endblock %}

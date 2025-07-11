@@ -1,0 +1,94 @@
+.cont-footer {
+    color: white !important;
+    background-color: #323390 !important;
+}
+
+.cont-footer h6 {
+    color: white !important;
+}
+
+.container-fluid.mt-4.mb-4 {
+    flex-grow: 1; /* Si quieres que ese div interno empuje hacia abajo */
+}
+
+.catalogo-spinner {
+    opacity: 1;
+}
+
+.catalogo-card {
+    height: calc(36.5vh + 8vw) !important;
+}
+
+/**** Opciones de Búsqueda ****/
+
+.btn-toggle {
+    background: none;
+    border: none;
+    font-weight: bold;
+    color: #333;
+}
+
+.btn-toggle:hover {
+    background-color: #f8f9fa;
+}
+
+
+/* Oculta el checkbox */
+.custom-check input[type="checkbox"] {
+    display: none;
+}
+
+/* Contenedor del texto */
+.custom-check {
+    display: block;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+    color: #333;
+    position: relative;
+}
+
+/* Estilo por defecto */
+.custom-check .label-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: capitalize;
+    transition: all 0.2s ease;
+    height: 1.5rem;
+}
+
+/* Si está marcado, se estiliza */
+.custom-check input[type="checkbox"]:checked + .label-text {
+    color: #0078d4;
+    font-weight: 600;
+}
+
+.custom-check input[type="checkbox"]:checked + .label-text::after {
+    content: "✔";
+    color: #0078d4;
+    font-size: 1rem;
+}
+
+/* opcion Precio */
+.price-filter {
+    display: block;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+    color: #333;
+    position: relative;
+}
+
+.rango-estilizado {
+    width: 100%;
+    height: 6px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #0d6efd 100%, #ddd 0%);
+    outline: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+

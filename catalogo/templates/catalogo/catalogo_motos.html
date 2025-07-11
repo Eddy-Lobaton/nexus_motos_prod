@@ -1,0 +1,122 @@
+{% extends 'catalogo/base.html'%}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'catalogo/css/catalogo_motos.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 mb-4">
+  <div class="row">
+    <!-- Filtros -->
+    <aside class="col-md-3 mb-4">
+      <div class="d-grid mt-3">
+        <button id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm">
+          Limpiar filtros
+        </button>
+      </div>
+      <div class="filter-sidebar p-3 bg-light border rounded">
+        <h6 class="text-muted mb-3">Buscar por...</h6>
+
+        <!-- Grupo: Marca -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroMarca" aria-expanded="false">
+              <span>Marca</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroMarca">
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="Nexus">
+                  <span class="label-text">Nexus</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="Bajaj">
+                  <span class="label-text">bajaj</span>
+              </label>
+          </div>
+        </div>
+
+        <!-- Grupo: Categoría -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroCategoria" aria-expanded="false">
+              <span>Categoría</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroCategoria">
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="Pistera">
+                  <span class="label-text">Pistera</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="Deportiva">
+                  <span class="label-text">Deportiva</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="Naked">
+                  <span class="label-text">Naked</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="Scooter">
+                  <span class="label-text">Scooter</span>
+              </label>
+          </div>
+        </div>
+
+        <!-- Grupo: Motor -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroMotor" aria-expanded="false">
+              <span>Motor</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroMotor">
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="motor" value="150 cc">
+                  <span class="label-text">150 cc</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="motor" value="250 cc">
+                  <span class="label-text">250 cc</span>
+              </label>
+          </div>
+        </div>
+
+        <!-- Grupo: Precio -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroPrecio" aria-expanded="false">
+              <span>Precio</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroPrecio">
+              <div class="price-filter">
+                  <input type="range" min="1000" max="20000" step="500" value="20000" class="rango-estilizado" id="precioRange">
+                  <p id="precioLabel">Hasta: S/ 20000</p>
+              </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Resultados -->
+    <section class="col-md-9">
+      <div class="row" id="resultados"></div>
+    </section>
+  </div>
+</div>
+
+{% endblock%}
+
+{% block extra_js %}
+<script>
+  const URL_BUSQUEDA = "{% url 'busqueda_motos' %}";
+  const STATIC_URL_IMG = "{% static 'tienda/img/' %}";
+  const URL_DETALLE_M = "{% url 'detalle_moto' 0 %}";
+</script>
+<script src="{% static 'catalogo/js/catalogo_motos.js' %}"></script>
+{% endblock %}
+
+

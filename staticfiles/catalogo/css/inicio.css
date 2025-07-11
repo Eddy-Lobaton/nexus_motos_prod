@@ -1,0 +1,91 @@
+.color-section {
+  background-color: #10172a;
+}
+.big-box {
+    height: 100%;
+    width: 90%;
+    display: flex;
+    align-items: flex-end; /* posiciona el contenido en la parte inferior */
+    justify-content: flex-start; /* posiciona el texto a la izquierda */
+    padding: 30px;
+    margin: 10px;
+    font-size: 2rem;
+    font-weight: bold;
+    background-color: #505463;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: white;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.big-box:hover {
+    background-color: #63687a;
+    transform: scale(1.02);
+}
+
+.box-container {
+    height: 80%;
+    width: 100%;
+    align-items: center;
+}
+
+/* Opcional: para hacer que el texto tenga fondo oscuro con transparencia */
+.big-box span {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+@media (min-width: 768px) {
+  .inicio-accion {
+    height: 100%;
+  }
+}
+
+/*.servicio-banner {
+    background-color: #514c6a;
+    color: white;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}*/
+.catalogo-opciones {
+  height: calc(100vh - 130px) !important;
+}
+
+.servicio-tecnico {
+  min-height: 330px;
+  background: url('/static/catalogo/img/fondo-servicio.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.servicio-texto h2 {
+  font-size: 2.5rem;
+  color: #fff !important;
+}
+
+.marcas {
+    background-color: rgb(50, 51, 144) !important;  
+}
+
+.color-title-w {
+    color: #fff !important;
+}
+
+.logo-marca {
+    height: 60px; /* ajusta según tus necesidades */
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo-marca:hover {
+    transform: scale(1.1);
+}
+
+

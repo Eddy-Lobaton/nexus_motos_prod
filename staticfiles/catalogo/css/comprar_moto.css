@@ -1,0 +1,59 @@
+.cont-footer {
+    color: white !important;
+    background-color: #323390 !important;
+}
+
+.cont-footer h6 {
+    color: white !important;
+}
+
+.container-fluid.mt-4.mb-4 {
+    flex-grow: 1; /* Si quieres que ese div interno empuje hacia abajo */
+}
+
+/**** Estilos específicos ****/
+.titulo-moto {
+    font-size: 2rem;
+    font-weight: bold;
+}
+.titulo-moto .marca {
+    color: red;
+}
+.titulo-moto .modelo {
+    color: navy;
+}
+.linea-divisoria {
+    flex-grow: 1;
+    border-bottom: 2px solid black;
+    margin: 0 10px;
+    height: 2px;
+}
+/*.imagen-moto {
+    max-height: 100px;
+    width: auto;
+}*/
+.imagen-moto {
+    max-height: 100px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0) 100%);
+    mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0) 100%);
+}
+.formulario-cliente input {
+    margin-bottom: 10px;
+}
+.btn-enviar {
+    background-color: #d9e36b;
+    font-style: italic;
+    font-weight: bold;
+    padding: 10px 40px;
+    border: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-enviar:hover {
+    background-color: #e5f24f;  /* Un poco más encendido */
+    transform: scale(1.05);     /* Efecto de crecimiento */
+    color: black;
+}
