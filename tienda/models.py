@@ -141,6 +141,7 @@ class TblCliente(models.Model):
     cliente_sexo = models.CharField(max_length=45, blank=True, null=True)
     cliente_direccion = models.CharField(max_length=245, blank=True, null=True)
     cliente_fecha = models.DateTimeField(default=timezone.now)
+    usuario = models.OneToOneField('TblUsuario', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         managed = False
@@ -372,6 +373,7 @@ class TblUsuario(AbstractUser):
     usuario_email = models.CharField(max_length=255)
     usuario_sexo = models.CharField(max_length=45)
     usuario_direccion = models.CharField(max_length=255)
+    usuario_cambiopwd = models.BooleanField(default=False)
     tipo_usuario = models.ForeignKey('TblTipoUsuario', on_delete=models.DO_NOTHING)
     cargo = models.ForeignKey('TblCargo', on_delete=models.DO_NOTHING)
 

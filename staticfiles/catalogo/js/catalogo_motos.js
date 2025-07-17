@@ -43,30 +43,6 @@ function cargarProductos() {
                                  <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>`;
-  /*contenedor.innerHTML = `
-          <div class="col-md-4 mb-4">
-            <div class="card d-flex justify-content-center align-items-center catalogo-card">
-                <div class="spinner-grow catalogo-spinner" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-          </div>
-          <div class="col-md-4 mb-4">
-            <div class="card d-flex justify-content-center align-items-center catalogo-card">
-                <div class="spinner-grow catalogo-spinner" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-          </div>
-          <div class="col-md-4 mb-4">
-            <div class="card d-flex justify-content-center align-items-center catalogo-card">
-                <div class="spinner-grow catalogo-spinner" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-          </div>
-        `;
-    */
 
   fetch(url)
     .then(res => {
@@ -83,7 +59,7 @@ function cargarProductos() {
 
       data.productos.forEach(p => {
         contenedor.innerHTML += `
-          <div class="col-md-4 mb-4">
+          <div class="col-md-4 col-xl-3 mb-4">
             <div class="card h-100" onclick="location.href='${URL_DETALLE_M.replace("0", p.id)}'" style="cursor: pointer;">
               <img src="${STATIC_URL_IMG}${p.imagen}" class="card-img-top" alt="${p.nombre}">
               <div class="card-body">

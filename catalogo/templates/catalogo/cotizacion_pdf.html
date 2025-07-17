@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: DejaVu Sans; font-size: 12px; }
+        .logo { width: 150px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 4px; text-align: center; }
+        .text-right { text-align: right; }
+
+        /* Tabla de encabezado sin bordes */
+        .no-border-table, .no-border-table td {
+            border: none !important;
+            padding: 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <table class="no-border-table" style="width: 100%;">
+        <tr>
+            <td style="width: 50%; text-align: left;">
+                <img src="{% static 'assets/img/logos/Nexus_2.png' %}" class="logo" />
+            </td>
+            <td style="width: 50%; text-align: right; vertical-align: middle;">
+                <span style="font-size: 14px;">Asesoría profesional para tu transporte</span>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <p>Madre de Dios, {{ fecha }}</p>
+    <p>Atte. Señor(a)</p>
+    <p><strong>{{ nombre_completo }}</strong></p>
+    <p>Estimado Sr(a). Por medio de la presente y de acuerdo a su requerimiento, dejamos nuestra propuesta como sigue.</p>
+
+    <table>
+        <tr>
+            <th>MODELO</th>
+            <th>CANT</th>
+            <th>UNI.</th>
+            <th style="width: 40%;">DESCRIPCIÓN</th>
+            <th>P.UNIT</th>
+            <th>P. TOTAL</th>
+        </tr>
+        <tr>
+            <td>{{ producto.prod_modelo }}</td>
+            <td>1</td>
+            <td>UNID.</td>
+            <td>{{ producto.prod_nombre }} - {{ producto.prod_motor }} - {{ producto.prod_marca }} - {{ producto.prod_categoria }}</td>
+            <td>{{ precio }}</td>
+            <td>{{ precio }}</td>
+        </tr>
+    </table>
+
+    <p class="text-right">TOTAL S/. {{ precio }}</p>
+
+    <p>Sin otro particular y en espera de su aceptación de la presente, quedamos a su disposición para cualquier consulta que Ud. estime conveniente.</p>
+
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <p><strong>CONDICIONES GENERALES</strong></p>
+
+            <table class="no-border-table">
+                <tr>
+                    <td style="width: 20%;">Precios</td>
+                    <td>INCLUYEN IGV</td>
+                </tr>
+                <tr>
+                    <td>Validez de la oferta</td>
+                    <td>03 DÍAS</td>
+                </tr>
+                <tr>
+                    <td>Plazo de entrega</td>
+                    <td>01 DÍA</td>
+                </tr>
+                <tr>
+                    <td>Garantía</td>
+                    <td>DE ACUERDO AL VEHÍCULO<br>
+                        <a href="mailto:nexusmotosac@gmail.com" style="color: blue; text-decoration: underline;">
+                            nexusmotosac@gmail.com
+                        </a><br>
+                        976970400
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="text-align: right;">
+            <p><strong>ELIZABETH GRADOS LEYVA</strong><br>Asesor</p>
+        </div>
+    </div>
+    <!-- Tabla invisible para empujar el pie hacia el fondo -->
+    <table class="no-border-table" style="width: 100%; height: 250px;">
+        <tr><td></td></tr>
+    </table>
+    <div style="margin-top: 80px; text-align: center; font-size: 11px;">
+        <p>
+            <strong>REPRESENTACIONES MRS S.A.C.</strong><br>
+            RUC 20607436488<br>
+            Tda. Cal. Francisco Bolognesi – Mz Nro. 5/n (a Media Cuadra del Colegio)<br>
+            Tlf. 976970400 / E-mail 
+            <a href="mailto:nexusmotosac@gmail.com" style="color: blue; text-decoration: underline;">
+                nexusmotosac@gmail.com
+            </a><br>
+            Compra accesorios online 
+            <a href="#" target="_blank" style="color: blue; text-decoration: underline;"> <!-- http://www.nexusmotosac.com.pe -->
+                www.nexusmotosac.com.pe
+            </a>
+        </p>
+    </div>
+</body>
+</html>

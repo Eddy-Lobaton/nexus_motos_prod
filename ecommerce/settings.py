@@ -176,3 +176,11 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+#CONFIGURACION CORREO CON GMAIL
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'nexusmotossac@gmail.com'
+EMAIL_HOST_PASSWORD = 'xqcv pjvj sour vlxh'
+EMAIL_USE_TLS = True

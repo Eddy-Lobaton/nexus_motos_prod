@@ -39,23 +39,62 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
         <nav class="navbar navbar-expand-lg navbar-dark px-4 fixed-top">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold" href="#">
-                    <img src="{% static 'assets/img//logos/Nexus.png' %}" alt="Nexus Motos" height="40">
+                    <img src="{% static 'assets/img/logos/Nexus.png' %}" alt="Nexus Motos" height="40">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
-                <ul class="navbar-nav mx-auto d-flex justify-content-center gap-2">
-                    <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Catálogo de productos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Accesorios</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Servicio técnico</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contáctanos</a></li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item me-3"><a class="nav-link" href="#"><i class="bx bx-cart"></i></a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-outline-light" href="{% url 'login' %}">Ingresar</a></li>
-                </ul>
+                    <ul class="navbar-nav mx-auto d-flex justify-content-center gap-2">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'inicio' %}">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'catalogo_motos' %}">Catálogo de productos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Accesorios</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Servicio técnico</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Contáctanos</a></li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item me-3 d-flex align-items-center"><a class="nav-link" href="#"><i class="bx bx-cart fs-4"></i></a></li>
+                        <!-- User -->
+                        {% if user.is_authenticated %}
+                        <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                            <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                <div class="avatar avatar-online">
+                                    <img src="{% static 'assets/img/avatars/usuario_defecto.png' %}" alt class="w-px-40 h-auto rounded-circle" />
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0">
+                                                <div class="avatar avatar-online">
+                                                    <img src="{% static 'assets/img/avatars/usuario_defecto.png' %}" alt
+                                                    class="w-px-40 h-auto rounded-circle" />
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 mx-3">
+                                                <span class="fw-medium d-block">{{ user.username }}</span>
+                                                <!-- <small class="text-muted">{{ group_name|capfirst }}</small> -->
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <div class="dropdown-divider"></div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="bx bx-power-off me-2"></i>
+                                        <span class="align-middle">Cerrar sesión</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <!--/ User -->
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link btn btn-outline-light" href="{% url 'login' %}">Ingresar</a></li>
+                        {% endif %}
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -86,6 +125,13 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
                 </div>
             </div>
         </div>
+
+        <!-- Form cerrar sesión -->
+        <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+            {% csrf_token %}
+        </form>
+        <!-- / Form cerrar sesión -->
+
         <!-- Footer -->
         <footer class="content-footer footer bg-footer-theme">
             <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">

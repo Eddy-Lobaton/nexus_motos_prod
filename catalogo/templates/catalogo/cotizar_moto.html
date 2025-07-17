@@ -1,0 +1,84 @@
+{% extends 'catalogo/base.html'%}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'catalogo/css/cotizar_moto.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 mb-4">
+    <div class="container my-5">
+        <!-- Título principal -->
+        <h2 class="fw-bold">Solicita tu próxima moto</h2>
+        <p>Completa el formulario y se te enviará la cotización a tu correo.</p>
+
+        <!-- Encabezado con marca, modelo, línea e imagen -->
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4 text-center text-md-start">
+            <div>
+                <div class="titulo-moto">
+                    <span class="marca">{{ producto.prod_marca }}</span>
+                </div>
+                <div class="titulo-moto">
+                    <span class="modelo">{{ producto.prod_modelo }}</span>
+                </div>
+            </div>
+            <div class="linea-divisoria d-none d-md-block"></div>
+            <img src="{% static 'tienda/img/' %}{{ producto.prod_imagen }}" alt="{{ producto.prod_modelo }}" class="imagen-moto mt-3 mt-md-0">
+        </div>
+
+        <!-- Formulario -->
+        <form id="form-cotizacion" class="mt-4 formulario-cliente">
+            <h5 class="fw-bold">Datos del cliente</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <label>Tipo de documento</label>
+                    <select class="form-control" name="tipo_documento">
+                        <option value="DNI" {% if user.is_authenticated and user.tblcliente and user.tblcliente.cliente_tipodocumento == 'DNI' %}selected{% endif %}>DNI</option>
+                        <option value="CE" {% if user.is_authenticated and user.tblcliente and user.tblcliente.cliente_tipodocumento == 'CE' %}selected{% endif %}>CE</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Nro de documento</label>
+                    <input type="text" class="form-control" name="nro_documento" placeholder="00000000"
+                        value="{% if user.is_authenticated and user.tblcliente %}{{ user.tblcliente.cliente_nrodocumento }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label>Email</label>
+                    <input type="email" class="form-control" name="email" placeholder="ejemplo@email.com"
+                        value="{% if user.is_authenticated and user.tblcliente %}{{ user.tblcliente.cliente_email }}{% endif %}">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <label>Nombres</label>
+                    <input type="text" class="form-control" name="nombres" placeholder="Tu nombre"
+                        value="{% if user.is_authenticated and user.tblcliente %}{{ user.tblcliente.cliente_nombre }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label>Apellidos</label>
+                    <input type="text" class="form-control" name="apellidos" placeholder="Tus apellidos"
+                        value="{% if user.is_authenticated and user.tblcliente %}{{ user.tblcliente.cliente_paterno }} {{ user.tblcliente.cliente_materno }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label>Teléfono</label>
+                    <input type="tel" class="form-control" name="telefono" placeholder="912345678"
+                        value="{% if user.is_authenticated and user.tblcliente %}{{ user.tblcliente.cliente_telefono }}{% endif %}">
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <input type="hidden" name="producto_id" value="{{ producto.prod_id }}">
+                <button type="submit" class="btn btn-enviar" id="btn-enviar">Enviar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock%}
+
+{% block extra_js %}
+<script>
+    const CSRF_TOKEN = "{{ csrf_token }}";
+    const INICIO_URL = "{% url 'inicio' %}";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'catalogo/js/cotizar_moto.js' %}"></script>
+{% endblock %}

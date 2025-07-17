@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 
 from django.conf import settings
 from .forms import LoginForm, RegistroUsuarioForm, ArticuloForm, ProveedorForm, ClienteForm, EditarUsuarioForm
-from .models import TblUsuario, TblProducto, TblProveedor, TblCliente, TblVenta, TblDetVenta, TblEntrada,TblTipoDocAlmacen, TblDetEntrada, TblMetodoPago, TblSalida, TblDetSalida, TblFinanciamiento, TblDetFinanciamiento, TblTipoUsuario, TblKardex, TblProductoSerie
+from .models import TblUsuario, TblProducto, TblProveedor, TblCliente, TblVenta, TblDetVenta, TblEntrada,TblTipoDocAlmacen, TblDetEntrada, TblMetodoPago, TblSalida, TblDetSalida, TblFinanciamiento, TblDetFinanciamiento, TblTipoUsuario, TblCargo, TblKardex, TblProductoSerie
 from django.contrib import messages
 from django.core.paginator import Paginator
 from datetime import datetime
@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from django.db.models import Max, Sum, Q, F, Value
 from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.db import transaction, connection, InternalError
 from decimal import Decimal
 from django.template.loader import render_to_string
@@ -21,11 +22,15 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from xhtml2pdf import pisa
 from num2words import num2words
+from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+import random
+import string
 import json
 import traceback
 
 import requests
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_GET, require_POST
 
 from django.contrib.auth import get_user_model
@@ -35,7 +40,15 @@ from django.utils.dateparse import parse_datetime, parse_date
 User = get_user_model()
 
 # Create your views here.
-@login_required
+def solo_personal(view_func):
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.tipo_usuario.tipo_usuario_descrip.lower() != 'cliente':
+            return view_func(request, *args, **kwargs)
+        return HttpResponseForbidden("Acceso no autorizado.")
+    return _wrapped_view
+
+@solo_personal
 def home(request):
     today = timezone.now()
     last_week = today - timedelta(days=7)
@@ -70,14 +83,14 @@ def home(request):
 
     # Top 5 vendedores
     try:
-        vendedores_ids = TblTipoUsuario.objects.filter(tipo_usuario_descrip='Vendedor').values_list('tipo_usuario_id', flat=True)
+        vendedores_ids = TblCargo.objects.filter(cargo_emp_descrip='Vendedor').values_list('cargo_id', flat=True)
     except Exception as e:
         print("ERROR obteniendo vendedores_ids:", e)
 
     try:
         top_vendedores = (
             TblSalida.objects
-            .filter(usuario__tipo_usuario_id__in=vendedores_ids)
+            .filter(usuario__cargo_id__in=vendedores_ids)
             .values('usuario__usuario_nombre', 'usuario__usuario_paterno')
             .annotate(total_vendido=Sum('salida_costo_total'))
             .order_by('-total_vendido')[:5]
@@ -150,7 +163,16 @@ def login_view(request):
                     if user is not None:
                         login(request, user)
                         request.session['id'] = user.id     # Puedes usar user.usuario_id si lo prefieres
-                        return redirect('home')
+                        
+                        if user.usuario_cambiopwd:
+                            return redirect('cambiar_contrasena')  # Vista temporal para cambio de contraseña
+
+                        tipo_usuario = user.tipo_usuario.tipo_usuario_descrip.lower()
+                        if tipo_usuario == 'cliente':
+                            return redirect('inicio')  # URL que corresponde a la tienda online
+                        else:
+                            return redirect('home')  # página interna para empleados/admin (personal autorizado)
+                        
                     else:
                         form.add_error('password', 'Contraseña incorrecta') # Añadir error para la contraseña incorrecta
                         #form.add_error(None, 'Contraseña incorrecta')
@@ -161,13 +183,53 @@ def login_view(request):
 
     return render(request, 'tienda/login.html', {'form': form})
 
-@login_required
+def recuperar_cuenta(request):
+    # Generar contraseña aleatoria
+    def generar_contrasena():
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    
+    if request.method == 'POST':
+        correo = request.POST.get('correo', '').strip()
+
+        usuarios = TblUsuario.objects.filter(usuario_email=correo)
+
+        if not usuarios.exists():
+            return JsonResponse({'error': 'No existe ningún usuario con ese correo.'})
+
+        if usuarios.count() > 1:
+            return JsonResponse({'error': 'Hay múltiples usuarios con ese correo. Contacta al administrador.'})
+
+        user = usuarios.first()
+        
+        # Generar nueva contraseña aleatoria
+        nueva_pwd = generar_contrasena()
+        
+        user.password = make_password(nueva_pwd)
+        user.usuario_cambiopwd = True
+        user.save()
+
+        # Enviar correo
+        try:
+            send_mail(
+                subject='Recuperación de cuenta - Nexus Motos',
+                message=f'Su usuario es: {user.username}\nNueva contraseña: {nueva_pwd}',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[correo],
+                fail_silently=False
+            )
+            return JsonResponse({'ok': True, 'mensaje': f'Se envió un correo a {correo} con sus credenciales.'})
+        except Exception as e:
+            return JsonResponse({'error': 'Error al enviar el correo. Intente más tarde.'})
+
+    # 👇 Si es GET, mostrar el formulario HTML
+    return render(request, 'tienda/recuperar_cuenta.html')
+
 def signoup (request):
     logout(request) 
     return redirect('home')
 
 @require_GET
-@login_required
+@solo_personal
 def consultar_dni(request):
     dni = request.GET.get('dni')
     if not dni:
@@ -194,7 +256,7 @@ def consultar_dni(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 #### USUARIOS ####
-@login_required
+@solo_personal
 def lista_usuarios(request):
     usuarios  = TblUsuario.objects.all()
 
@@ -208,13 +270,13 @@ def lista_usuarios(request):
     return render(request, 'tienda/lista_usuarios.html', context)
 
 @require_GET
-@login_required
+@solo_personal
 def verificar_username(request):
     username = request.GET.get('username', '')
     existe = User.objects.filter(username=username).exists()
     return JsonResponse({'existe': existe})
 
-@login_required
+@solo_personal
 def verificar_datos(request):
     numDoc = request.GET.get('numDoc')
     email = request.GET.get('email')
@@ -223,7 +285,7 @@ def verificar_datos(request):
 
     return JsonResponse({'existsDoc': existeDoc, 'existsEmail': existeEmail})
 
-@login_required
+@solo_personal
 def agregar_usuario(request):
     if request.method == 'POST':
         form = RegistroUsuarioForm(request.POST, request.FILES)
@@ -247,7 +309,7 @@ def agregar_usuario(request):
     }
     return render(request, 'tienda/agregar_usuario.html', context)
 
-@login_required
+@solo_personal
 def editar_usuario(request, id):
     usuario = get_object_or_404(TblUsuario, id=id)
 
@@ -270,7 +332,7 @@ def editar_usuario(request, id):
     }
     return render(request, 'tienda/editar_usuario.html', context)
 
-@login_required
+@solo_personal
 def detalle_usuario(request, id):
     usuario = get_object_or_404(TblUsuario, pk=id)
     
@@ -284,7 +346,7 @@ def detalle_usuario(request, id):
     return render(request, 'tienda/detalle_usuario.html', context)
 
 #### ARTICULOS ####
-@login_required
+@solo_personal
 def lista_articulos(request):
     productos = TblProducto.objects.all().select_related('tblkardex')
     
@@ -304,7 +366,7 @@ def lista_articulos(request):
 
     return render(request, 'tienda/lista_articulos.html', context)
 
-@login_required
+@solo_personal
 def verificar_articulo_existe(request):
     marca = request.GET.get('marca')
     modelo = request.GET.get('modelo')
@@ -312,7 +374,7 @@ def verificar_articulo_existe(request):
     existe = TblProducto.objects.filter(prod_marca=marca, prod_modelo=modelo).exists()
     return JsonResponse({'existe': existe})
 
-@login_required
+@solo_personal
 def agregar_articulos(request):
     if request.method == 'POST':
         form = ArticuloForm(request.POST, request.FILES)
@@ -351,7 +413,7 @@ def agregar_articulos(request):
 
     return render(request, 'tienda/agregar_articulos.html', context)
 
-@login_required
+@solo_personal
 def editar_articulo(request, producto_id):
     producto = get_object_or_404(TblProducto, prod_id=producto_id)
 
@@ -393,7 +455,7 @@ def editar_articulo(request, producto_id):
 
     return render(request, 'tienda/editar_articulo.html', context)
 
-@login_required
+@solo_personal
 def detalle_articulo(request, producto_id):
     producto = get_object_or_404(TblProducto, pk=producto_id)
     descuento_porcentaje = int(producto.prod_porcenta_dcto)
@@ -416,7 +478,7 @@ def detalle_articulo(request, producto_id):
     return render(request, 'tienda/detalle_articulo.html', context)
 
 @require_POST
-@login_required
+@solo_personal
 def cambiar_estado_articulo(request, producto_id):
     producto = get_object_or_404(TblProducto, prod_id=producto_id)
     producto.prod_estado = not producto.prod_estado
@@ -426,7 +488,7 @@ def cambiar_estado_articulo(request, producto_id):
     return JsonResponse({"message": f'Artículo "{producto.prod_nombre}" ha sido {estado} correctamente.'})
 
 #### PROVEEDORES ####
-@login_required
+@solo_personal
 def lista_proveedores(request):
     proveedores = TblProveedor.objects.all()
 
@@ -439,7 +501,7 @@ def lista_proveedores(request):
 
     return render(request, 'tienda/lista_proveedores.html', context)
 
-@login_required
+@solo_personal
 def verificar_proveedor(request):
     nombre = request.GET.get('nombre')
     ruc = request.GET.get('ruc')
@@ -453,7 +515,7 @@ def verificar_proveedor(request):
 
     return JsonResponse({'existeEmail': existeEmail, 'existeNombre': existeNombre, 'existeRuc': existeRuc, 'existeTelefono': existeTelefono})
 
-@login_required
+@solo_personal
 def agregar_proveedor(request):
     if request.method == 'POST':
         form = ProveedorForm(request.POST, request.FILES)
@@ -508,7 +570,7 @@ def agregar_proveedor(request):
 
     return render(request, 'tienda/agregar_proveedor.html', context)
 
-@login_required
+@solo_personal
 def editar_proveedor(request, prov_id):
     proveedor = get_object_or_404(TblProveedor, proveedor_id = prov_id)
     if request.method == 'POST':
@@ -533,7 +595,7 @@ def editar_proveedor(request, prov_id):
 
     return render(request, 'tienda/editar_proveedor.html', context)
 
-@login_required
+@solo_personal
 def detalle_proveedor(request, prov_id):
     proveedor = get_object_or_404(TblProveedor, pk=prov_id)
     
@@ -547,7 +609,7 @@ def detalle_proveedor(request, prov_id):
     return render(request, 'tienda/detalle_proveedor.html', context)
 
 #### INGRESOS ####
-@login_required
+@solo_personal
 def lista_ingresos(request):
     ingresos = TblEntrada.objects.select_related(
         'proveedor', 'tipo_doc_almacen', 'usuario'
@@ -562,7 +624,7 @@ def lista_ingresos(request):
 
     return render(request, 'tienda/lista_ingresos.html', context)
 
-@login_required
+@solo_personal
 def validar_serie(request):
     try:
         serie = request.GET.get('serie', '').strip()
@@ -572,7 +634,7 @@ def validar_serie(request):
         print(f'Error al consultar serie: {e}')
 
 @transaction.atomic
-@login_required
+@solo_personal
 def agregar_ingresos(request):
     if request.method == "POST":
         try:
@@ -692,7 +754,7 @@ def agregar_ingresos(request):
 
     return render(request, 'tienda/agregar_ingresos.html', context)
 
-@login_required
+@solo_personal
 def detalle_ingreso(request, ingreso_id):
     try:
         entrada = get_object_or_404(TblEntrada, pk=ingreso_id)
@@ -714,7 +776,7 @@ def detalle_ingreso(request, ingreso_id):
         return redirect("lista_ingresos")
 
 #### CLIENTES ####
-@login_required
+@solo_personal
 def lista_clientes(request):
     clientes = TblCliente.objects.all()
 
@@ -727,7 +789,7 @@ def lista_clientes(request):
 
     return render(request, 'tienda/lista_clientes.html', context)
 
-@login_required
+@solo_personal
 def verificar_datos_cliente(request):
     numDocClie = request.GET.get('numDocClien')
     emailClie = request.GET.get('emailClien')
@@ -738,7 +800,7 @@ def verificar_datos_cliente(request):
 
     return JsonResponse({'existeDocCliente': existeDocClie, 'existsEmailCliente': existeEmailClie, 'existsTelefCliente': existeTelefClie})
 
-@login_required
+@solo_personal
 def agregar_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST, request.FILES)
@@ -791,7 +853,7 @@ def agregar_cliente(request):
 
     return render(request, 'tienda/agregar_cliente.html', context)
 
-@login_required
+@solo_personal
 def editar_cliente(request, clien_id):
     cliente = get_object_or_404(TblCliente, cliente_id = clien_id)
     if request.method == 'POST':
@@ -815,7 +877,7 @@ def editar_cliente(request, clien_id):
     }
     return render(request, 'tienda/editar_cliente.html', context)
 
-@login_required
+@solo_personal
 def detalle_cliente(request, clien_id):
     cliente = get_object_or_404(TblCliente, pk=clien_id)
     
@@ -829,7 +891,7 @@ def detalle_cliente(request, clien_id):
     return render(request, 'tienda/detalle_cliente.html', context)
 
 #### VENTAS ####
-@login_required
+@solo_personal
 def lista_ventas(request):
     ventas = TblVenta.objects.select_related('cliente', 'usuario', 'metodo_pago').prefetch_related('tblfinanciamiento_set')
 
@@ -862,7 +924,7 @@ def lista_ventas(request):
     return render(request, 'tienda/lista_ventas.html', context)
 
 @transaction.atomic
-@login_required
+@solo_personal
 def agregar_venta(request):
     if request.method == 'POST':
         try:
@@ -1106,7 +1168,7 @@ def numero_a_letras(numero):
     texto = num2words(parte_entera, lang='es').upper()
     return f"{texto} Y {parte_decimal:02d}/100 NUEVOS SOLES"
 
-@login_required
+@solo_personal
 def generar_pdf_venta(request, venta_id):
     venta = get_object_or_404(TblVenta, pk=venta_id)
     detalle_venta = TblDetVenta.objects.filter(venta=venta).select_related('prod')
@@ -1138,7 +1200,7 @@ def generar_pdf_venta(request, venta_id):
     
     return response
 
-@login_required
+@solo_personal
 def detalle_venta(request, venta_id):
     try:
         venta = get_object_or_404(TblVenta, pk=venta_id)
@@ -1175,7 +1237,7 @@ def detalle_venta(request, venta_id):
         return redirect("lista_ventas")
 
 @require_POST
-@login_required
+@solo_personal
 def registrar_pago(request, cuota_id):
     try:
         cuota = TblDetFinanciamiento.objects.get(pk=cuota_id)
@@ -1221,7 +1283,7 @@ def registrar_pago(request, cuota_id):
 
 
 #### SALIDAS ####
-@login_required
+@solo_personal
 def lista_salidas(request):
     salidas = TblSalida.objects.select_related('tipo_doc_almacen', 'usuario').all()
 
@@ -1235,7 +1297,7 @@ def lista_salidas(request):
     return render(request, 'tienda/lista_salidas.html', context)
 
 @transaction.atomic
-@login_required
+@solo_personal
 def agregar_salida(request):
     if request.method == "POST":
         try:
@@ -1339,10 +1401,10 @@ def agregar_salida(request):
     return render(request, 'tienda/agregar_salida.html', context)
 
 #### REPORTES ####
-@login_required
+@solo_personal
 def reporte_compras(request):
     proveedores = TblProveedor.objects.all()
-    almacenistas = TblUsuario.objects.filter(tipo_usuario__tipo_usuario_descrip='Administrador')
+    almacenistas = TblUsuario.objects.filter(cargo__cargo_emp_descrip='Administrador') # el administrador es el que registra las compras
     
     context = {
         'breadcrumbs': [['Reporte compras', '']],
@@ -1354,7 +1416,7 @@ def reporte_compras(request):
 
     return render(request, 'tienda/reporte_compras.html', context)
 
-@login_required
+@solo_personal
 def filtrar_compras(request):
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
@@ -1391,10 +1453,10 @@ def filtrar_compras(request):
 
     return JsonResponse({'compras': data})
 
-@login_required
+@solo_personal
 def reporte_salidas(request):
     clientes = TblCliente.objects.all()
-    almacenistas = TblUsuario.objects.filter(tipo_usuario__tipo_usuario_descrip='Almacenero')
+    almacenistas = TblUsuario.objects.filter(cargo__cargo_emp_descrip='Almacenero')
     
     context = {
         'breadcrumbs': [['Reporte salidas', '']],
@@ -1406,7 +1468,7 @@ def reporte_salidas(request):
 
     return render(request, 'tienda/reporte_salidas.html', context)
 
-@login_required
+@solo_personal
 def filtrar_salidas(request):
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
@@ -1440,7 +1502,7 @@ def filtrar_salidas(request):
 
     return JsonResponse({'salidas': data})
 
-@login_required
+@solo_personal
 def reporte_mov_productos(request):
     try:
         productos = TblProducto.objects.filter(tbldetentrada__isnull=False).distinct()
@@ -1554,7 +1616,8 @@ def buscar_movimientos(request):
             data.append({'producto': f"{producto.prod_modelo} - {producto.prod_marca}", 'movimientos': movimientos_final})
 
         return JsonResponse({'data': data})
-    
+
+@solo_personal
 def reporte_series_productos(request):
     productos = TblProducto.objects.filter(
         tbldetentrada__isnull=False
@@ -1633,7 +1696,7 @@ def buscar_series_productos(request):
 
         return JsonResponse({'datos': datos})
 
-@login_required
+@solo_personal
 def reporte_productos(request):
     productos = TblProducto.objects.filter(tblkardex__isnull=False).select_related('tblkardex')
 

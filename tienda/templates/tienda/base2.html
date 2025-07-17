@@ -65,7 +65,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
           <!-- Operación -->
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Operación</span></li>
           <!-- Almacén -->
-          {% if request.user.tipo_usuario_id == 1 or request.user.tipo_usuario_id == 2 %}
+          {% if request.user.cargo_id == 1 or request.user.cargo_id == 2 %}
           <li class="menu-item {% if menu_padre %}{% if menu_padre == 'almacen' %}active open{% endif %}{% endif %}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
               <i class="menu-icon tf-icons bx bx-box"></i>
@@ -86,7 +86,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
           </li>
           {% endif %}
           <!-- Compras -->
-          {% if request.user.tipo_usuario_id == 1 %}
+          {% if request.user.cargo_id == 1 %}
           <li class="menu-item {% if menu_padre %}{% if menu_padre == 'compras' %}active open{% endif %}{% endif %}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                   <i class="menu-icon tf-icons bx bx-cart"></i>
@@ -107,7 +107,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
           </li>
           {% endif %}
           <!-- Ventas -->
-          {% if request.user.tipo_usuario_id == 1 or request.user.tipo_usuario_id == 3 %}
+          {% if request.user.cargo_id == 1 or request.user.cargo_id == 3 %}
           <li class="menu-item {% if menu_padre %}{% if menu_padre == 'ventas' %}active open{% endif %}{% endif %}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                   <i class="menu-icon tf-icons bx bx-dollar"></i>
@@ -128,7 +128,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
           </li>
           {% endif %}
           <!-- Reportes -->
-          {% if request.user.tipo_usuario_id == 4 or request.user.tipo_usuario_id == 1 %}
+          {% if request.user.cargo_id == 2 or request.user.cargo_id == 1 %}
           <li class="menu-item {% if menu_padre %}{% if menu_padre == 'reportes' %}active open{% endif %}{% endif %}">
               <a href="javascript:void(0)" class="menu-link menu-toggle">
                   <i class="menu-icon tf-icons bx bx-file"></i>
@@ -140,7 +140,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
                       <div data-i18n="Basic">Rep. Compras</div>
                     </a>
                   </li>
-                  {% if request.user.tipo_usuario_id == 1 %}
+                  {% if request.user.cargo_id == 1 %}
                   <li class="menu-item {% if menu_hijo %}{% if menu_hijo == 'reporte_salidas' %}active{% endif %}{% endif %}">
                     <a href="{% url 'reporte_salidas' %}" class="menu-link">
                       <div data-i18n="Basic">Rep. Salidas</div>
@@ -166,7 +166,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
           </li>
           {% endif %}
 
-          {% if request.user.tipo_usuario_id == 1 %}
+          {% if request.user.cargo_id == 1 %}
           <!-- Administración -->
           <li class="menu-header small text-uppercase"><span class="menu-header-text">Administración</span></li>
           <!-- Accesos -->
