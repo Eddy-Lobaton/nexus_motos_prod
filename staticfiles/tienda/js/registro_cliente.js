@@ -194,7 +194,7 @@ function inicializarRegistroCliente() {
                 }
             })
             .catch(error => {
-                dniInput.value = "";
+                emailInput.value = "";
                 console.error("Error al verificar email:", error);
                 feedbackDivEmail.textContent = "Ocurrió un error al verificar el email.";
                 emailInput.classList.add('is-invalid');

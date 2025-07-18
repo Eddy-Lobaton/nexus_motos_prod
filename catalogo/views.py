@@ -28,6 +28,14 @@ def validar_documento_cliente(request):
     existeUsr = TblUsuario.objects.filter(usuario_nrodocumento=documento).exists()
     return JsonResponse({'existe': existe, 'existeUsr': existeUsr})
 
+def validar_email_cliente(request):
+    email = request.GET.get('email')
+    existeEmail = TblCliente.objects.filter(cliente_email=email).exists() if email else False
+    existeEmailUsr = TblUsuario.objects.filter(usuario_email=email).exists() if email else False
+
+    return JsonResponse({'existeEmail': existeEmail, 'existeEmailUsr': existeEmailUsr})
+
+
 def registro_cliente(request):
     # Generar contraseña aleatoria
     def generar_contrasena():
