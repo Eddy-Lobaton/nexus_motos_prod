@@ -38,7 +38,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
     <body> <!-- HEADER -->
         <nav class="navbar navbar-expand-lg navbar-dark px-4 fixed-top">
             <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href="#">
+                <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
                     <img src="{% static 'assets/img/logos/Nexus.png' %}" alt="Nexus Motos" height="40">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -47,7 +47,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
                 <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                     <ul class="navbar-nav mx-auto d-flex justify-content-center gap-2">
                         <li class="nav-item"><a class="nav-link" href="{% url 'inicio' %}">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'catalogo_motos' %}">Catálogo de productos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'catalogo_motos' %}">Motos</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Accesorios</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Servicio técnico</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Contáctanos</a></li>

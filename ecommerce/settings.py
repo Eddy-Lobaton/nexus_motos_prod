@@ -92,9 +92,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'nexus_motos',
         'USER': 'root',
-        'PASSWORD': 'cbZvpGNHLtCvJeMzaZEdgYGidiaFPBQP',
-        'HOST': 'switchback.proxy.rlwy.net',
-        'PORT': '21115',
+        'PASSWORD': 'dBfhinxPvthZKmapGsjixmRcPyTWTBzC',
+        'HOST': 'centerbeam.proxy.rlwy.net',
+        'PORT': '43371',
     }
 }
 
