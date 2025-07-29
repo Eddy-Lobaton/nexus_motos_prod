@@ -25,15 +25,13 @@ def inicio(request):
 def validar_documento_cliente(request):
     documento = request.GET.get('documento')
     existe = TblCliente.objects.filter(cliente_nrodocumento=documento).exists()
-    existeUsr = TblUsuario.objects.filter(usuario_nrodocumento=documento).exists()
-    return JsonResponse({'existe': existe, 'existeUsr': existeUsr})
+    return JsonResponse({'existe': existe})
 
 def validar_email_cliente(request):
     email = request.GET.get('email')
     existeEmail = TblCliente.objects.filter(cliente_email=email).exists() if email else False
-    existeEmailUsr = TblUsuario.objects.filter(usuario_email=email).exists() if email else False
 
-    return JsonResponse({'existeEmail': existeEmail, 'existeEmailUsr': existeEmailUsr})
+    return JsonResponse({'existeEmail': existeEmail})
 
 
 def registro_cliente(request):
@@ -57,7 +55,7 @@ def registro_cliente(request):
         try:
             # Obtener tipo de usuario y cargo predeterminado para clientes
             tipo_cliente = TblTipoUsuario.objects.get(tipo_usuario_descrip__iexact='cliente')
-            cargo_nulo = TblCargo.objects.get(cargo_emp_descrip__iexact='Sin_cargo')  # Puedes asignar un "Sin cargo" o similar
+            cargo_nulo = TblCargo.objects.get(cargo_emp_descrip__iexact='Sin_cargo')
 
             # Crear usuario
             nuevo_usuario = TblUsuario.objects.create(
@@ -95,7 +93,7 @@ def registro_cliente(request):
             # Enviar correo
             send_mail(
                 subject='Bienvenido a Nexus Motos',
-                message=f'Hola {nombre}, tu usuario es: {documento} y tu contraseña: {contrasena}',
+                message=f'Hola {nombre}, ya eres parte de nuestros clientes. Tu usuario es: {documento} y tu contraseña: {contrasena}',
                 from_email=settings.EMAIL_HOST_USER,  # configurado en settings
                 recipient_list=[correo],
                 fail_silently=False

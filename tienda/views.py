@@ -149,20 +149,20 @@ def login_view(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             # Obtener los datos del formulario
-            usuarios = form.cleaned_data['usuario']
-            passwords = form.cleaned_data['password']
+            usuario = form.cleaned_data['usuario']
+            password = form.cleaned_data['password']
 
             # Buscar el usuario de forma segura
-            user_qs = TblUsuario.objects.filter(username=usuarios)  #obtiene todos los registros que coinciden con el username
+            user_qs = TblUsuario.objects.filter(username=usuario)  #obtiene todos los registros que coinciden con el username
             if user_qs.exists():
                 if user_qs.count() > 1:
                     form.add_error('usuario', 'Hay múltiples usuarios con este nombre. Contacta al administrador.')
                 else:
                     # Intentamos autenticar (validar contraseña)
-                    user = authenticate(request, username=usuarios, password=passwords)
+                    user = authenticate(request, username=usuario, password=password)
                     if user is not None:
                         login(request, user)
-                        request.session['id'] = user.id     # Puedes usar user.usuario_id si lo prefieres
+                        request.session['id'] = user.id     # Se puede usar user.usuario_id si se prefiere
                         
                         if user.usuario_cambiopwd:
                             return redirect('cambiar_contrasena')  # Vista temporal para cambio de contraseña
@@ -273,15 +273,15 @@ def lista_usuarios(request):
 @solo_personal
 def verificar_username(request):
     username = request.GET.get('username', '')
-    existe = User.objects.filter(username=username).exists()
+    existe = User.objects.filter(username__iexact=username).exists()
     return JsonResponse({'existe': existe})
 
 @solo_personal
 def verificar_datos(request):
     numDoc = request.GET.get('numDoc')
     email = request.GET.get('email')
-    existeDoc = TblUsuario.objects.filter(usuario_nrodocumento=numDoc).exists() if numDoc else False
-    existeEmail = TblUsuario.objects.filter(usuario_email=email).exists() if email else False
+    existeDoc = TblUsuario.objects.filter(usuario_nrodocumento=numDoc).exclude(tipo_usuario__tipo_usuario_descrip__iexact="cliente").exists() if numDoc else False
+    existeEmail = TblUsuario.objects.filter(usuario_email=email).exclude(tipo_usuario__tipo_usuario_descrip__iexact="cliente").exists() if email else False
 
     return JsonResponse({'existsDoc': existeDoc, 'existsEmail': existeEmail})
 
@@ -324,9 +324,9 @@ def editar_usuario(request, id):
         form = EditarUsuarioForm(instance=usuario)
 
     context = {
-        'breadcrumbs': [],
-        'menu_padre': 'home',
-        'menu_hijo': '',
+        'breadcrumbs': [['Usuarios','/lista_usuarios/'],['Edición de usuario','']],
+        'menu_padre': 'accesos',
+        'menu_hijo': 'usuarios',
         'form': form,
         'usuario': usuario,
     }
@@ -800,13 +800,77 @@ def verificar_datos_cliente(request):
 
     return JsonResponse({'existeDocCliente': existeDocClie, 'existsEmailCliente': existeEmailClie, 'existsTelefCliente': existeTelefClie})
 
+def generar_contrasena(longitud=8):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=longitud))
+
 @solo_personal
 def agregar_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                cliente = form.save()
+                # Obtener datos del formulario
+                data = form.cleaned_data
+                tipo_documento = data['cliente_tipodocumento']
+                documento = data['cliente_nrodocumento']
+                nombre = data['cliente_nombre']
+                paterno = data['cliente_paterno']
+                materno = data['cliente_materno']
+                nacimiento = data['cliente_fechanac']
+                telefono = data['cliente_telefono']
+                correo = data['cliente_email']
+                sexo = data['cliente_sexo']
+                direccion = data['cliente_direccion']
+
+                # Generar contraseña
+                contrasena = generar_contrasena()
+
+                # Obtener tipo de usuario y cargo predeterminado
+                tipo_cliente = TblTipoUsuario.objects.get(tipo_usuario_descrip__iexact='cliente')
+                cargo_nulo = TblCargo.objects.get(cargo_emp_descrip__iexact='Sin_cargo')
+
+                # Crear usuario
+                nuevo_usuario = TblUsuario.objects.create(
+                    usuario_tipodocumento=tipo_documento,
+                    usuario_nrodocumento=documento,
+                    usuario_nombre=nombre,
+                    usuario_paterno=paterno,
+                    usuario_materno=materno,
+                    usuario_direccion=direccion,
+                    usuario_fechanac=nacimiento,
+                    usuario_sexo=sexo,
+                    usuario_email=correo,
+                    usuario_cambiopwd=True,
+                    cargo=cargo_nulo,
+                    tipo_usuario=tipo_cliente,
+                    username=documento,
+                    password=make_password(contrasena)
+                )
+
+                # Crear cliente vinculado
+                cliente = TblCliente.objects.create(
+                    cliente_tipodocumento=tipo_documento,
+                    cliente_nrodocumento=documento,
+                    cliente_nombre=nombre,
+                    cliente_paterno=paterno,
+                    cliente_materno=materno,
+                    cliente_fechanac=nacimiento,
+                    cliente_telefono=telefono,
+                    cliente_email=correo,
+                    cliente_sexo=sexo,
+                    cliente_direccion=direccion,
+                    usuario=nuevo_usuario
+                )
+
+                # Enviar correo
+                send_mail(
+                    subject='Bienvenido a Nexus Motos',
+                    message=f'Hola {nombre}, ya eres parte de nuestros clientes. Tu usuario es: {documento} y tu contraseña: {contrasena}',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[correo],
+                    fail_silently=False
+                )
+
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': True,

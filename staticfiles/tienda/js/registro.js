@@ -1,10 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-    //**** validar DNI
-    const dniInput = document.querySelector('#id_usuario_nrodocumento');
+    let errorNumDoc = true;
+    let errorEmail = true;
+    let errorUsrN = true;
+
+    //**** validar N. documento
+    const numDocInput = document.querySelector('#id_usuario_nrodocumento');
     const tipoDocInput = document.querySelector('#id_usuario_tipodocumento');
     const feedbackDivDni = document.createElement('div');
     feedbackDivDni.classList.add('text-danger', 'small');
-    dniInput.parentNode.appendChild(feedbackDivDni);
+    numDocInput.parentNode.appendChild(feedbackDivDni);
 
     const limpiarCampos = () => {
         //document.querySelector('#id_usuario_nrodocumento').value = '';
@@ -17,107 +21,119 @@ document.addEventListener('DOMContentLoaded', function () {
     const restringirDni = function () {
         this.value = this.value.replace(/\D/g, "").slice(0, 8);
     };
+    const restringirCE = function () {
+        this.value = this.value.replace(/\D/g, "").slice(0, 12);
+    };
 
     tipoDocInput.addEventListener('change', function () {
         const tipoDoc = tipoDocInput.value;
         limpiarCampos();
         if (tipoDoc === "DNI") {
-            dniInput.value = "";
-            dniInput.setAttribute("maxlength", "8");
-            dniInput.addEventListener("input", restringirDni);
+            numDocInput.value = "";
+            numDocInput.setAttribute("maxlength", "8");
+            numDocInput.removeEventListener("input", restringirCE);
+            numDocInput.addEventListener("input", restringirDni);
             feedbackDivDni.textContent = "El DNI debe contener 8 dígitos numéricos.";
             feedbackDivDni.classList.remove('text-danger');
             feedbackDivDni.classList.add('text-primary');
         } else if (tipoDoc === "CE") {
-            dniInput.setAttribute("maxlength", "12");
-            dniInput.removeEventListener("input", restringirDni);
+            numDocInput.value = "";
+            numDocInput.setAttribute("maxlength", "12");
+            numDocInput.removeEventListener("input", restringirDni);
+            numDocInput.addEventListener("input", restringirCE);
             feedbackDivDni.textContent = "El carnet de extranjería debe contener 12 dígitos numéricos.";
             feedbackDivDni.classList.remove('text-danger');
             feedbackDivDni.classList.add('text-primary');
         } else {
-            dniInput.removeAttribute("maxlength");
-            dniInput.removeEventListener("input", restringirDni);
+            numDocInput.removeAttribute("maxlength");
+            numDocInput.removeEventListener("input", restringirDni);
+            numDocInput.removeEventListener("input", restringirCE);
         }
     });
 
-    dniInput.addEventListener('blur', function () {
-        const dni = dniInput.value.trim();
+    numDocInput.addEventListener('blur', async function () {
+        const numDoc = numDocInput.value.trim();
         const tipoDoc = tipoDocInput.value.trim();
         const dniRegex = /^\d{8}$/; // 8 dígitos numéricos
-    
-        // Verifica si el tipo es DNI y el valor cumple con el formato
-        if (tipoDoc === "DNI" && dniRegex.test(dni)) {
-            // Mostrar el overlay antes de la consulta
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            
-            fetch(`/registrar/verificar-datos-bd/?numDoc=${dni}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.existsDoc) {
-                        limpiarCampos();
-                        feedbackDivDni.textContent = "Este DNI ya está registrado en el sistema.";
-                        dniInput.classList.add('is-invalid');
-                        feedbackDivDni.classList.add('text-danger');
-                        document.getElementById('loadingOverlay').style.display = 'none';
-                    } else {
+        const ceRegex = /^\d{12}$/; // 12 dígitos numéricos
 
-                        // Paso 2: Consultar al API externo
-                        fetch(`/registrar/api/consultar-dni/?dni=${dni}`)
-                            .then(response => response.json())
-                            .then(data => {
-
-                                if (data.success) {
-                                    feedbackDivDni.textContent = "";
-                                    dniInput.classList.remove('is-invalid');
-                                    document.querySelector('#id_usuario_nombre').value = data.nombres || '';
-                                    document.querySelector('#id_usuario_paterno').value = data.apellido_paterno || '';
-                                    document.querySelector('#id_usuario_materno').value = data.apellido_materno || '';
-                                    document.querySelector('#id_usuario_direccion').value = data.direccion || '';
-                                } else {
-                                    limpiarCampos();
-                                    feedbackDivDni.textContent = data.error || "DNI no encontrado.";
-                                    dniInput.classList.add('is-invalid');
-                                }
-                            })
-                            .catch(error => {
-                                console.error("Error en la consulta:", error);
-                                limpiarCampos();
-                                feedbackDivDni.textContent = "Ocurrió un error al consultar el DNI.";
-                                dniInput.classList.add('is-invalid');
-                                })
-                            .finally(() => {
-                                document.getElementById('loadingOverlay').style.display = 'none';
-                            });
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al validar el DNI en BD:", error);
-                    feedbackDivDni.textContent = "Error al verificar si el DNI ya existe.";
-                    dniInput.classList.add('is-invalid');
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                });
-
-        } else if (tipoDoc === "DNI" && !dniRegex.test(dni)) {
-            if (dni.length > 0 && dni.length < 8) {
-                limpiarCampos();
-                feedbackDivDni.textContent = "El DNI debe tener exactamente 8 dígitos. Ingresó menos.";
-                feedbackDivDni.classList.remove('text-danger');
-                dniInput.classList.add('is-invalid');
-                feedbackDivDni.classList.add('text-danger', 'small');
-            } else {
-                limpiarCampos();
-                feedbackDivDni.textContent = "El DNI debe contener exactamente 8 dígitos numéricos.";
-            }
-        } 
-    });
-
-    //**** al realizar cambio en el tipo de documento limpiar imput
-    tipoDocInput.addEventListener('change', function () {
-        limpiarCampos();
-        if (tipoDocInput.value === 'DNI') {
-            dniInput.dispatchEvent(new Event('blur')); // Disparar el evento blur
+        if (tipoDoc === "DNI" && !dniRegex.test(numDoc)) {
+            limpiarCampos();
+            feedbackDivDni.textContent = "El DNI debe contener exactamente 8 dígitos numéricos.";
+            feedbackDivDni.classList.remove('text-primary');
+            feedbackDivDni.classList.add('text-danger', 'small');
+            numDocInput.classList.add('is-invalid');
+            errorNumDoc = true;
+            return;
         }
+
+        if (tipoDoc === "CE" && !ceRegex.test(numDoc)) {
+            limpiarCampos();
+            feedbackDivDni.textContent = "El CE debe contener exactamente 12 dígitos numéricos.";
+            feedbackDivDni.classList.remove('text-primary');
+            feedbackDivDni.classList.add('text-danger', 'small');
+            numDocInput.classList.add('is-invalid');
+            errorNumDoc = true;
+            return;
+        }
+
+        errorNumDoc = false;
+
+        // Mostrar el overlay antes de la consulta
+        document.getElementById('loadingOverlay').style.display = 'flex';
+
+        try {
+            // 1. Verificar si ya existe en la BD
+            const response = await fetch(`/registrar/verificar-datos-bd/?numDoc=${numDoc}`);
+            const data = await response.json();
+
+            if (data.existsDoc) {
+                numDocInput.value = "";
+                limpiarCampos();
+                feedbackDivDni.textContent = `El N° de documento "${numDoc}" ya está registrado.`;
+                numDocInput.classList.add('is-invalid');
+                feedbackDivDni.classList.remove('text-primary');
+                feedbackDivDni.classList.add('text-danger');
+                errorNumDoc = true;
+                return;
+            }
+
+            // 2. Consultar API RENIEC solo si no existe en la BD y tipoDoc es DNI
+            if (tipoDoc === "DNI") {
+                const reniecResponse = await fetch(`/registrar/api/consultar-dni/?dni=${numDoc}`);
+                const reniecData = await reniecResponse.json();
+
+                if (reniecData.success) {
+                    feedbackDivDni.textContent = "";
+                    numDocInput.classList.remove('is-invalid');
+                    document.querySelector('#id_usuario_nombre').value = reniecData.nombres || '';
+                    document.querySelector('#id_usuario_paterno').value = reniecData.apellido_paterno || '';
+                    document.querySelector('#id_usuario_materno').value = reniecData.apellido_materno || '';
+                    document.querySelector('#id_usuario_direccion').value = reniecData.direccion || '';
+                } else {
+                    limpiarCampos();
+                    feedbackDivDni.textContent = reniecData.error || "DNI no encontrado.";
+                    numDocInput.classList.remove('is-invalid');
+                    feedbackDivDni.classList.remove('text-danger');
+                    feedbackDivDni.classList.add('text-primary');
+                }
+            }
+
+        } catch (error) {
+            console.error("Error al verificar:", error);
+            numDocInput.value = "";
+            limpiarCampos();
+            feedbackDivDni.textContent = `Ocurrió un error al verificar el documento "${numDoc}".`;
+            feedbackDivDni.classList.remove('text-primary');
+            feedbackDivDni.classList.add('text-danger');
+            numDocInput.classList.add('is-invalid');
+            errorNumDoc = true;
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
     });
+
 
     //**** validar fecha de nacimiento dentro del rango 
     const fechaInput = document.querySelector('#id_usuario_fechanac');
@@ -159,10 +175,12 @@ document.addEventListener('DOMContentLoaded', function () {
             feedbackDivEmail.textContent = "Ingrese un email correcto.";
             feedbackDivEmail.classList.add('text-danger', 'small');
             emailInput.classList.add('is-invalid');
+            errorEmail = true;
             return;
         }
-        document.getElementById('loadingOverlay').style.display = 'flex';
 
+        errorEmail = false;
+        document.getElementById('loadingOverlay').style.display = 'flex';
 
         fetch(`/registrar/verificar-datos-bd/?email=${email}`)
             .then(response => response.json())
@@ -171,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     feedbackDivEmail.textContent = "Email ya ha sido registrado.";
                     emailInput.classList.add('is-invalid');
                     feedbackDivEmail.classList.add('text-danger');
+                    errorEmail = true;
                 } else {
                     feedbackDivEmail.textContent = "";
                     emailInput.classList.remove('is-invalid');
@@ -181,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error("Error al verificar email:", error);
                 feedbackDivEmail.textContent = "Ocurrió un error al verificar el email.";
                 emailInput.classList.add('is-invalid');
+                errorEmail = true;
             })
             .finally(() => {
                 document.getElementById('loadingOverlay').style.display = 'none';
@@ -197,6 +217,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const username = usernameInput.value.trim();
 
         if (username.length > 0) {
+            const regex = /^(?=.*[A-Za-z])[A-Za-z0-9_-]+$/;
+            if (!regex.test(username)) {
+                feedbackDiv.textContent = "El nombre de usuario solo puede contener: letras números _ -";
+                usernameInput.classList.add('is-invalid');
+                usernameInput.value = "";
+                errorUsrN = true;
+                return;
+            }
+
+            errorUsrN = false;
+
             document.getElementById('loadingOverlay').style.display = 'flex';
                 fetch(`/registrar/verificar-username/?username=${username}`)
                     .then(response => response.json())
@@ -205,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             feedbackDiv.textContent = "El nombre de usuario \""+ username +"\" está en uso.";
                             usernameInput.classList.add('is-invalid');
                             usernameInput.value = "";
+                            errorUsrN = true;
                         } else {
                             feedbackDiv.textContent = "";
                             usernameInput.classList.remove('is-invalid');
@@ -214,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error("Error al verificar email:", error);
                         feedbackDivEmail.textContent = "Ocurrió un error al verificar el email.";
                         emailInput.classList.add('is-invalid');
+                        errorUsrN = true;
                     })
                     .finally(() => {
                         document.getElementById('loadingOverlay').style.display = 'none';
@@ -222,23 +255,59 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             feedbackDiv.textContent = "";
             usernameInput.classList.remove('is-invalid');
+            errorUsrN = true;
         }
     });
     //**** Validar usuario antes de registrar
     document.getElementById('formRegistro').addEventListener('submit', function (event) {
         event.preventDefault();  // Detiene el envío por defecto
     
-        const numDocInput = document.getElementById('id_usuario_nrodocumento');
         const numDoc = numDocInput.value.trim();
-
-        const emailInput = document.getElementById('id_usuario_email');
         const email = emailInput.value.trim();
+        const usrName = usernameInput.value.trim();
+        const usrNom = document.querySelector('#id_usuario_nombre').value.trim();
+        const usrPat = document.querySelector('#id_usuario_paterno').value.trim();
+        const usrMat = document.querySelector('#id_usuario_materno').value.trim();
+        const usrDir = document.querySelector('#id_usuario_direccion').value.trim();
+        const usrPwd = document.querySelector('#id_password').value.trim();
 
         const feedback = document.getElementById('regFeedback'); //div que muestra el error, invocado desde el registro.html
         feedback.classList.add('text-danger', 'small'); //añade las clases al div invocado previamente
     
         let continuar = true; //para validar si existe numero documento o email
         let msjError = "";
+
+        if (numDoc.length === 0 || errorNumDoc) {
+            numDocInput.classList.add('is-invalid');
+            msjError+= (continuar ? "" : " / " ) + 'Corrija el número de documento.';
+            continuar = false;
+        }
+        if (usrNom.length === 0 || usrPat.length === 0 || usrMat.length === 0 || usrDir.length === 0) {
+            msjError+= (continuar ? "" : " / " ) + 'Corrija los datos del usuario.';
+            continuar = false;
+        }
+        if (email.length === 0 || errorEmail) {
+            emailInput.classList.add('is-invalid');
+            msjError+= (continuar ? "" : " / " ) + 'Corrija el email.';
+            continuar = false;
+        }
+        if (usrName.length === 0 || errorUsrN) {
+            usernameInput.classList.add('is-invalid');
+            msjError+= (continuar ? "" : " / " ) + 'Corrija el nombre de usuario.';
+            continuar = false;
+        }
+
+        
+
+        if (usrPwd.length === 0) {
+            msjError+= (continuar ? "" : " / " ) + 'Corrija la contraseña.';
+            continuar = false;
+        }
+
+        if (!continuar) {
+            feedback.textContent = msjError;
+            return;
+        }
 
         // Validar si ya existe en el sistema usando fetch
         fetch(`/registrar/verificar-datos-bd/?numDoc=${numDoc}&email=${email}`)

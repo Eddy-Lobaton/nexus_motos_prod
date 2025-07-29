@@ -1,5 +1,6 @@
 const overlay = document.getElementById('loadingOverlay');
 
+//**** Validar documento
 document.getElementById('documento').addEventListener('blur', function () {
     const doc = this.value;
     if (doc.length > 5) {
@@ -12,17 +13,6 @@ document.getElementById('documento').addEventListener('blur', function () {
                         icon: 'warning',
                         title: 'Cliente ya existe',
                         text: 'Ud ya es nuestro cliente. Su usuario es su DNI.',
-                        confirmButtonText: 'OK',
-                        allowOutsideClick: false,  // <- evita cierre al hacer clic fuera
-                        allowEscapeKey: false      // <- evita cierre con ESC
-                    }).then(() => {
-                        window.location.href = LOGIN_URL;
-                    });
-                } else if(data.existeUsr){
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Usuario ya existe',
-                        text: 'Ud es parte de nuestra empresa.',
                         confirmButtonText: 'OK',
                         allowOutsideClick: false,  // <- evita cierre al hacer clic fuera
                         allowEscapeKey: false      // <- evita cierre con ESC
@@ -57,7 +47,6 @@ emailInput.addEventListener('blur', function () {
         return;
     }
 
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         emailInput.value = "";
@@ -72,7 +61,7 @@ emailInput.addEventListener('blur', function () {
     fetch(`/catalogo/registro/validar-email/?email=${email}`)
         .then(response => response.json())
         .then(data => {
-            if (data.existeEmail || data.existeEmailUsr) {
+            if (data.existeEmail) {
                 emailInput.value = "";
                 comDivEmail.textContent = `El email "${email}" ya ha sido registrado en otra cuenta.`;
                 emailInput.classList.add('is-invalid');

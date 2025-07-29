@@ -1,6 +1,6 @@
 # from django.forms import ModelForm
 from django import forms
-from .models import TblUsuario, TblProducto, TblProveedor,TblCliente, TblEntrada
+from .models import TblUsuario, TblTipoUsuario,TblCargo, TblProducto, TblProveedor,TblCliente, TblEntrada
 from django.contrib.auth.hashers import make_password
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_DOWN
@@ -117,8 +117,13 @@ class RegistroUsuarioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Excluir "Cliente" de tipo_usuario
+        self.fields['tipo_usuario'].queryset = TblTipoUsuario.objects.exclude(tipo_usuario_descrip__iexact="Cliente")
         # Cambiar la etiqueta por defecto
         self.fields['tipo_usuario'].empty_label = "Seleccionar..."
+        
+        # Excluir "Sin_cargo" de cargo
+        self.fields['cargo'].queryset = TblCargo.objects.exclude(cargo_emp_descrip__iexact="Sin_cargo")
         self.fields['cargo'].empty_label = "Seleccionar..."
 
         # Rango de año para fecha de nacimiento
@@ -162,6 +167,9 @@ class EditarUsuarioForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Excluir "Cliente" de tipo_usuario
+        self.fields['tipo_usuario'].queryset = TblTipoUsuario.objects.exclude(tipo_usuario_descrip__iexact="Cliente")
+        # Cambiar la etiqueta por defecto
         self.fields['tipo_usuario'].empty_label = "Seleccionar..."
         if self.instance.pk:
             # Marcador visual que NO será guardado
