@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from tienda.models import TblProducto, TblKardex, TblUsuario, TblCliente, TblTipoUsuario, TblCargo
 from django.db.models import Q
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -119,6 +120,9 @@ def cambiar_contrasena(request):
         user.password = make_password(nueva)
         user.usuario_cambiopwd = False
         user.save()
+
+        # Mantener sesión activa tras cambiar password
+        update_session_auth_hash(request, user)
         
         tipo_usuario = user.tipo_usuario.tipo_usuario_descrip.lower()
         return JsonResponse({

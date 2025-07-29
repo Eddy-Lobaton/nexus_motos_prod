@@ -32,7 +32,8 @@ document.getElementById('formCambio').addEventListener('submit', function(e) {
         body: formData,
         headers: {
             'X-CSRFToken': CSRF_TOKEN
-        }
+        },
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
