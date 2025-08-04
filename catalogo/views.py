@@ -206,14 +206,21 @@ def busqueda_motos(request):
 
 def detalle_moto(request, prod_id):
     producto = TblProducto.objects.get(prod_id=prod_id)
-    kardex = TblKardex.objects.get(prod=producto)
+    try:
+        kardex = TblKardex.objects.get(prod=producto)
+        precio = kardex.kardex_precio_vigente
+    except TblKardex.DoesNotExist:
+        kardex = None
+        precio = None
+    
     relacionados = TblProducto.objects.filter(
-        prod_categoria=producto.prod_categoria
-    ).exclude(prod_id=prod_id)[:5]
+        prod_categoria=producto.prod_categoria,
+        tblkardex__isnull=False
+    ).exclude(prod_id=prod_id).select_related('tblkardex')[:5]
 
     return render(request, "catalogo/detalle_moto.html", {
         "producto": producto,
-        "precio": kardex.kardex_precio_vigente,
+        "precio": precio,
         "relacionados": relacionados,
     })
 
@@ -334,3 +341,26 @@ def busqueda_accesorios(request):
         })
     
     return JsonResponse({'productos': data})
+
+def detalle_accesorio(request, prod_id):
+    producto = TblProducto.objects.get(prod_id=prod_id)
+    try:
+        kardex = TblKardex.objects.get(prod=producto)
+        precio = kardex.kardex_precio_vigente
+    except TblKardex.DoesNotExist:
+        kardex = None
+        precio = None
+
+    relacionados = TblProducto.objects.filter(
+        prod_codigo=producto.prod_codigo
+    ).exclude(prod_id=prod_id)[:5]
+    #relacionados = TblProducto.objects.filter(
+    #    prod_codigo=producto.prod_codigo,
+    #    tblkardex__isnull=False
+    #).exclude(prod_id=prod_id).select_related('tblkardex')[:5]
+
+    return render(request, "catalogo/detalle_accesorio.html", {
+        "producto": producto,
+        "precio": precio,
+        "relacionados": relacionados,
+    })
