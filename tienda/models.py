@@ -266,12 +266,35 @@ class TblMetodoPago(models.Model):
 
 class TblProducto(models.Model):
     prod_id = models.AutoField(primary_key=True)
+    prod_tipo = models.CharField(max_length=45)
+    prod_codigo = models.CharField(max_length=45)
     prod_nombre = models.CharField(max_length=25)
     prod_modelo = models.CharField(max_length=45)
-    prod_motor = models.CharField(max_length=10)
-    prod_categoria = models.CharField(max_length=45)
+    prod_motor = models.CharField(max_length=10, blank=True, null=True)
+    prod_categoria = models.CharField(max_length=45, blank=True, null=True)
     prod_marca = models.CharField(max_length=45)
-    prod_aniofabricacion = models.TextField(blank=True, null=True)  # This field type is a guess.
+    prod_aniofabricacion = models.CharField(max_length=10, blank=True, null=True)
+    prod_cilindrada = models.CharField(max_length=6, blank=True, null=True)
+    prod_potencia = models.CharField(max_length=10, blank=True, null=True)
+    prod_freno_delantero = models.CharField(max_length=200, blank=True, null=True)
+    prod_freno_posterior = models.CharField(max_length=200, blank=True, null=True)
+    prod_neumatico_delantero = models.CharField(max_length=45, blank=True, null=True)
+    prod_neumatico_posterior = models.CharField(max_length=45, blank=True, null=True)
+    prod_suspension_delantera = models.CharField(max_length=145, blank=True, null=True)
+    prod_suspension_posterior = models.CharField(max_length=145, blank=True, null=True)
+    prod_rendimiento_galon = models.CharField(max_length=10, blank=True, null=True)
+    prod_tono = models.CharField(max_length=45, blank=True, null=True)
+    prod_certificacion = models.CharField(max_length=100, blank=True, null=True)
+    prod_visor = models.CharField(max_length=145, blank=True, null=True)
+    prod_calota_externa = models.CharField(max_length=45, blank=True, null=True)
+    prod_calota_interna = models.CharField(max_length=45, blank=True, null=True)
+    prod_ventilacion = models.CharField(max_length=145, blank=True, null=True)
+    prod_almohadilla = models.CharField(max_length=145, blank=True, null=True)
+    prod_hebilla = models.CharField(max_length=45, blank=True, null=True)
+    prod_material = models.CharField(max_length=145, blank=True, null=True)
+    prod_proteccion = models.CharField(max_length=145, blank=True, null=True)
+    prod_cierre = models.CharField(max_length=145, blank=True, null=True)
+    prod_medidas = models.CharField(max_length=145, blank=True, null=True)
     prod_descripcion = models.TextField(blank=True, null=True)
     prod_fecha_registro = models.DateTimeField()
     prod_porcenta_dcto = models.DecimalField(max_digits=4, decimal_places=2, blank=True, default=0)
@@ -294,6 +317,28 @@ class TblProductoSerie(models.Model):
     class Meta:
         managed = False
         db_table = 'tbl_producto_serie'
+
+
+class TblProductoImagen(models.Model):
+    prod_img_id = models.AutoField(primary_key=True)
+    prod_img_nombre = models.CharField(max_length=255)
+    prod = models.ForeignKey('TblProducto', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'tbl_producto_imagen'
+
+
+class TblProductoTalla(models.Model):
+    prod_talla_id = models.AutoField(primary_key=True)
+    prod_talla_codigo = models.CharField(max_length=5)
+    prod_talla_stock = models.IntegerField()
+    prod = models.ForeignKey('TblProducto', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'tbl_producto_talla'
+        unique_together = ('prod', 'prod_talla_codigo')  # No repetir la misma talla para el mismo producto
 
 
 class TblProveedor(models.Model):

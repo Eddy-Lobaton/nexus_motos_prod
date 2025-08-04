@@ -60,12 +60,12 @@ function cargarProductos() {
       data.productos.forEach(p => {
         contenedor.innerHTML += `
           <div class="col-md-4 col-xl-3 mb-4">
-            <div class="card h-100" onclick="location.href='${URL_DETALLE_M.replace("0", p.id)}'" style="cursor: pointer;">
+            <div class="card h-100" onclick="location.href='${URL_DETALLE_A.replace("0", p.id)}'" style="cursor: pointer;">
               <img src="${STATIC_URL_IMG}${p.imagen}" class="card-img-top img-producto" alt="${p.modelo}">
               <div class="card-body">
                 <h6 class="text-danger fw-bold">${p.marca}</h6>
                 <h5>${p.modelo}</h5>
-                <p class="mb-1">Motor: ${p.motor}</p>
+                <p class="mb-1">Color ${p.tono}</p>
                 <p class="fw-bold text-primary">S/. ${p.precio.toLocaleString()}</p>
               </div>
             </div>

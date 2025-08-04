@@ -13,10 +13,23 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from io import BytesIO
+from django.contrib.auth import logout
+from functools import wraps
 import random
 import string
 import os
 
+def logout_no_cliente(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            tipo = getattr(request.user.tipo_usuario, 'tipo_usuario_descrip', '').upper()
+            if tipo != 'CLIENTE':
+                logout(request)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@logout_no_cliente
 def inicio(request):
     """
     Renderiza la página de inicio del catálogo.
@@ -146,7 +159,9 @@ def detalle_catalogo(request, prod_id):
         return render(request, 'catalogo/detalle_catalogo.html', {'producto': producto})
     except Exception as e:
         return HttpResponse(f"Error al cargar producto: {e}")
-    
+
+#### CATALOGO MOTOS ####
+@logout_no_cliente
 def catalogo_motos(request):
     return render(request, 'catalogo/catalogo_motos.html')
 
@@ -168,7 +183,7 @@ def busqueda_motos(request):
         filtros &= Q(tblkardex__kardex_precio_vigente__lte=precio_max)
 
     try:
-        productos = TblProducto.objects.filter(filtros, prod_estado=True).select_related('tblkardex')
+        productos = TblProducto.objects.filter(filtros, prod_tipo='MOTO', prod_estado=True).select_related('tblkardex')
     except Exception as e:
         # Mostrar el error solo en la consola
         print("Error:")
@@ -278,3 +293,44 @@ def enviar_cotizacion(request):
             return JsonResponse({'error': str(e)})
 
     return JsonResponse({'error': 'Método no permitido'})
+
+#### CATALOGO ACCESORIOS ####
+@logout_no_cliente
+def catalogo_accesorios(request):
+    return render(request, 'catalogo/catalogo_accesorios.html')
+
+def busqueda_accesorios(request):
+    filtros = Q()
+    
+    categorias = request.GET.getlist('categoria')
+    marcas = request.GET.getlist('marca')
+    precio_max = request.GET.get('precio_max')
+    
+    if categorias:
+        filtros &= Q(prod_codigo__in=categorias)
+    if marcas:
+        filtros &= Q(prod_marca__in=marcas)
+    #if precio_max:
+    #    filtros &= Q(tblkardex__kardex_precio_vigente__lte=precio_max)
+
+    try:
+        productos = TblProducto.objects.filter(filtros, prod_tipo='ACCESORIO', prod_estado=True)#.select_related('tblkardex')
+    except Exception as e:
+        # Mostrar el error solo en la consola
+        print("Error:")
+        print(str(e))
+    
+    data = []
+    for p in productos:
+        data.append({
+            'id': p.prod_id,
+            'nombre': p.prod_nombre,
+            'modelo': p.prod_modelo,
+            'tono': p.prod_tono,
+            'marca': p.prod_marca,
+            'categoria': p.prod_categoria,
+            'precio': '0.00', #float(p.tblkardex.kardex_precio_vigente),
+            'imagen': p.prod_imagen  # asegúrate que sea URL accesible (usa MEDIA_URL si necesario)
+        })
+    
+    return JsonResponse({'productos': data})

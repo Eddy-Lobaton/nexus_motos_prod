@@ -1,0 +1,133 @@
+{% extends 'catalogo/base.html'%}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'catalogo/css/catalogo_accesorios.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 mb-4">
+  <div class="row">
+    <!-- Filtros col-4 col-sm-5 col-md-5 col-lg-12 col-xl-5 -->
+    <aside class="col-md-3 col-xl-2 mb-4">
+      <div class="d-grid mt-3">
+        <button id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm">
+          Limpiar filtros
+        </button>
+      </div>
+      <div class="filter-sidebar p-3 bg-light border rounded">
+        <h6 class="text-muted mb-3">Buscar por...</h6>
+
+        <!-- Grupo: Categoría -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroCategoria" aria-expanded="false">
+              <span>Categoría</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroCategoria">
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="CASCO">
+                  <span class="label-text">CASCO</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="GUANTE">
+                  <span class="label-text">GUANTE</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="CAJUELA">
+                  <span class="label-text">CAJUELA</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="categoria" value="OTROS">
+                  <span class="label-text">OTROS</span>
+              </label>
+          </div>
+        </div>
+
+        <!-- Grupo: Marca -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroMarca" aria-expanded="false">
+              <span>Marca</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroMarca">
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="LS2">
+                  <span class="label-text">LS2</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="HOKEN">
+                  <span class="label-text">HOKEN</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="MEGA">
+                  <span class="label-text">MEGA</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="XKUDO">
+                  <span class="label-text">XKUDO</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="HRO">
+                  <span class="label-text">HRO</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="GENERICO">
+                  <span class="label-text">GENERICO</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="SCOYCO">
+                  <span class="label-text">SCOYCO</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="OREGON">
+                  <span class="label-text">OREGON</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="BJR">
+                  <span class="label-text">BJR</span>
+              </label>
+              <label class="custom-check">
+                  <input type="checkbox" class="filtro" name="marca" value="KRATOZ">
+                  <span class="label-text">KRATOZ</span>
+              </label>
+          </div>
+        </div>
+
+        <!-- Grupo: Precio -->
+        <div class="filter-group mb-3">
+          <button class="btn-toggle-filter btn btn-toggle w-100 d-flex justify-content-between align-items-center border-bottom px-2 py-2"
+                  data-bs-toggle="collapse" data-bs-target="#filtroPrecio" aria-expanded="false">
+              <span>Precio</span>
+              <span class="toggle-icon">+</span>
+          </button>
+          <div class="collapse px-2" id="filtroPrecio">
+              <div class="price-filter">
+                  <input type="range" min="1000" max="20000" step="500" value="20000" class="rango-estilizado" id="precioRange">
+                  <p id="precioLabel">Hasta: S/ 20000</p>
+              </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Resultados -->
+    <section class="col-md-9 col-xl-10">
+      <div class="row" id="resultados"></div>
+    </section>
+  </div>
+</div>
+
+{% endblock%}
+
+{% block extra_js %}
+<script>
+  const URL_BUSQUEDA = "{% url 'busqueda_accesorios' %}";
+  const STATIC_URL_IMG = "{% static 'tienda/img/' %}";
+  const URL_DETALLE_A = "{% url 'detalle_moto' 0 %}";
+</script>
+<script src="{% static 'catalogo/js/catalogo_accesorios.js' %}"></script>
+{% endblock %}

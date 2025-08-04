@@ -14,4 +14,6 @@ urlpatterns = [
     path("moto/<int:prod_id>/", views.detalle_moto, name="detalle_moto"),
     path("moto/<int:prod_id>/cotizar/", views.cotizar_moto, name="cotizar_moto"),
     path("enviar-cotizacion/", views.enviar_cotizacion, name="enviar_cotizacion"),
+    path('accesorios/', views.catalogo_accesorios, name='catalogo_accesorios'),
+    path('accesorios/busqueda/', views.busqueda_accesorios, name='busqueda_accesorios'),
 ]
