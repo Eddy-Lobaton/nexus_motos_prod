@@ -6,7 +6,7 @@ from tienda.models import *
 from .serializers import *
 
 class TblProductoViewSet(viewsets.ModelViewSet):
-    queryset = TblProducto.objects.all()
+    queryset = TblProducto.objects.filter(prod_estado=True, tblkardex__isnull=False).select_related('tblkardex')
     serializer_class = TblProductoSerializer
 
 class TblClienteViewSet(viewsets.ModelViewSet):

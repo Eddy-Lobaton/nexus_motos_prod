@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
-from tienda.models import TblProducto, TblKardex, TblUsuario, TblCliente, TblTipoUsuario, TblCargo
+from tienda.models import TblProducto, TblKardex, TblUsuario, TblCliente, TblTipoUsuario, TblCargo, TblProductoTalla
 from django.db.models import Q
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.hashers import make_password
@@ -347,9 +347,15 @@ def detalle_accesorio(request, prod_id):
     try:
         kardex = TblKardex.objects.get(prod=producto)
         precio = kardex.kardex_precio_vigente
+        stock_actual = kardex.kardex_stock_actual
     except TblKardex.DoesNotExist:
         kardex = None
         precio = None
+        stock_actual = None
+
+    tallas = []
+    tallas = TblProductoTalla.objects.filter(prod=producto)
+    
 
     relacionados = TblProducto.objects.filter(
         prod_codigo=producto.prod_codigo
@@ -362,5 +368,7 @@ def detalle_accesorio(request, prod_id):
     return render(request, "catalogo/detalle_accesorio.html", {
         "producto": producto,
         "precio": precio,
+        "stock_actual": stock_actual,
+        "tallas": tallas,
         "relacionados": relacionados,
     })

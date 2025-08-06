@@ -1,10 +1,18 @@
 from rest_framework import serializers
 from tienda.models import *
 
+class TblKardexSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TblKardex
+        fields = '__all__'
+
 class TblProductoSerializer(serializers.ModelSerializer):
+    tblkardex = TblKardexSerializer(read_only=True)  # nombre del atributo reverse
+
     class Meta:
         model = TblProducto
         fields = '__all__'
+
 
 class TblClienteSerializer(serializers.ModelSerializer):
     class Meta:
