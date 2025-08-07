@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from tienda.models import TblProducto, TblKardex, TblUsuario, TblCliente, TblTipoUsuario, TblCargo, TblProductoTalla
 from django.db.models import Q
 from django.contrib.auth import update_session_auth_hash
@@ -18,6 +19,7 @@ from functools import wraps
 import random
 import string
 import os
+import json
 
 def logout_no_cliente(view_func):
     @wraps(view_func)
@@ -353,7 +355,6 @@ def detalle_accesorio(request, prod_id):
         precio = None
         stock_actual = None
 
-    tallas = []
     tallas = TblProductoTalla.objects.filter(prod=producto)
     
 
@@ -368,7 +369,60 @@ def detalle_accesorio(request, prod_id):
     return render(request, "catalogo/detalle_accesorio.html", {
         "producto": producto,
         "precio": precio,
-        "stock_actual": stock_actual,
+        "stock_actual": 5, #stock_actual
         "tallas": tallas,
         "relacionados": relacionados,
+    })
+
+@require_POST
+def agregar_a_carrito(request):
+    data = json.loads(request.body)
+    prod_id = data['prod_id']
+    prod_marca = data['prod_marca']
+    prod_codigo = data['prod_codigo']
+    prod_modelo = data['prod_modelo']
+    prod_tono = data['prod_tono']
+    prod_precio = float(data['prod_precio'])
+    prod_imagen = data['prod_imagen']
+    stock_actual = int(data['stock_actual'])
+    talla = data['talla']
+    cantidad = int(data['cantidad'])
+
+    key = f"{prod_id}_{talla}" if talla else prod_id
+
+    carrito = request.session.get('carrito', {})
+
+    if key in carrito:
+        stock = carrito[key]['stock']
+        nueva_cantidad = carrito[key]['cantidad'] + cantidad
+        if stock_actual < stock:
+            carrito[key]['stock'] = stock_actual
+        if nueva_cantidad > stock_actual:
+            return JsonResponse({'success': False, 'mensaje': 'Stock insuficiente'})
+        
+        carrito[key]['cantidad'] = nueva_cantidad
+    else:
+        carrito[key] = {
+            'marca': prod_marca,
+            'codigo': prod_codigo,
+            'modelo': prod_modelo,
+            'tono': prod_tono,
+            'precio': prod_precio,
+            'imagen': prod_imagen,
+            'stock': stock_actual,
+            'cantidad': cantidad,
+            'talla': talla
+        }
+
+    request.session['carrito'] = carrito
+    
+    total_items = sum(item['cantidad'] for item in carrito.values())
+    request.session['carrito_total'] = total_items
+
+    request.session.modified = True
+
+    return JsonResponse({
+        'success': True,
+        'producto': carrito[key],
+        'total_items': total_items
     })

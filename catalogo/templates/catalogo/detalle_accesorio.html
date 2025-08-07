@@ -27,20 +27,32 @@
                         {% if talla.prod_talla_stock == 0 %}
                             <button class="btn btn-outline-secondary text-decoration-underline" disabled>{{ talla.prod_talla_codigo }}</button>
                         {% else %}
-                            <button class="btn btn-outline-primary btn-talla" data-talla="{{ talla.prod_talla_codigo }}">{{ talla.prod_talla_codigo }}</button>
+                            <button class="btn btn-outline-primary btn-talla" data-talla="{{ talla.prod_talla_codigo }}" data-stock="{{ talla.prod_talla_stock }}">{{ talla.prod_talla_codigo }}</button>
                         {% endif %}
                     {% endfor %}
                 </div>
+                {% if stock_actual %}
                 <div class="mt-3 d-flex align-items-center gap-2">
                     <button id="btn-disminuir" class="btn btn-secondary">-</button>
-                    <input type="number" id="cantidad" value="1" min="1" max="10" class="form-control w-auto text-center" readonly>
+                    <input type="text" id="cantidad" name="cantidad" class="form-control text-center" style="width: 50px;" value="1" readonly>
                     <button id="btn-aumentar" class="btn btn-secondary">+</button>
-                    <span id="stock-actual" class="ms-2 text-muted">Máximo {{ stock_actual }} unidades.</span>
+                    <span class="ms-2 text-muted">Máximo <span id="spanStockActual">{{ stock_actual }}</span> unidades.</span>
                 </div>
-
-                <button id="btn-agregar-carrito" class="btn btn-success mt-3" data-prod-id="{{ producto.prod_id }}">
-                    Agregar a carrito
-                </button>
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <button id="btn-agregar-carrito" class="btn btn-success mt-3" data-prod-id="{{ producto.prod_id }}" data-cant-tallas="{{ tallas|length }}" data-stock-actual="{{ stock_actual }}">
+                        Agregar a carrito
+                    </button>
+                    <span id="alert-agregar-carrito" class="ms-2 text-muted"></span>
+                </div>
+                <input type="hidden" id="prodMarca" name="prodMarca" value="{{ producto.prod_marca }}">
+                <input type="hidden" id="prodCodigo" name="prodCodigo" value="{{ producto.prod_codigo }}">
+                <input type="hidden" id="prodModelo" name="prodModelo" value="{{ producto.prod_modelo }}">
+                <input type="hidden" id="prodTono" name="prodTono" value="{{ producto.prod_tono }}">
+                <input type="hidden" id="prodPrecio" name="prodPrecio" value="{{ precio|default:0|floatformat:2 }}">
+                <input type="hidden" id="prodImagen" name="prodImagen" value="{{ producto.prod_imagen }}">
+                {% else %}
+                <h4 class="text-secondary fw-bold">Stock no disponible</h4>
+                {% endif %}
             </div>
         </div>
 
@@ -74,9 +86,127 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de selección de talla -->
+<div class="modal fade" id="modalTalla" data-bs-backdrop="static" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3 shadow">
+
+      <!-- Header -->
+      <div class="modal-header border-bottom py-3 justify-content-center" style="background-color: #f8f9fa;">
+        <div class="text-center w-100 position-relative">
+          <div class="mb-2">
+            <i class="bx bx-error-circle text-warning fs-4"></i>
+          </div>
+          <h6 class="mb-0 fw-semibold">Selecciona tus opciones para agregar el producto al carrito</h6>
+        </div>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body px-4 pt-4 pb-3">
+        <div class="d-flex align-items-center mb-3">
+          <img src="{% static 'tienda/img/' %}{{ producto.prod_imagen }}" alt="Producto" style="width: 60px; height: auto;" class="me-3">
+          <div class="flex-grow-1">
+            <small class="text-uppercase text-muted fw-bold d-block">{{ producto.prod_marca }}</small>
+            <p class="mb-0">{{ producto.prod_codigo }} {{ producto.prod_marca }} {{ producto.prod_modelo }} {{ producto.prod_tono }}</p>
+          </div>
+          <div>
+            {% if precio %}
+              <strong class="text-danger">S/. {{ precio|floatformat:2 }}</strong>
+            {% else %}
+              <span class="text-muted">Precio no disponible</span>
+            {% endif %}
+          </div>
+        </div>
+        <hr class="border-top border-secondary">
+        <!-- Tallas -->
+        <div class="mb-3">
+          <label class="fw-semibold d-block mb-2">Talla:</label>
+          <div class="d-flex gap-2">
+            {% for talla in tallas %}
+              {% if talla.prod_talla_stock == 0 %}
+                <button class="btn btn-outline-secondary text-decoration-underline btn-sm" disabled>{{ talla.prod_talla_codigo }}</button>
+              {% else %}
+                <button class="btn btn-outline-primary btn-sm mod-btn-talla" data-talla="{{ talla.prod_talla_codigo }}" data-stock="{{ talla.prod_talla_stock }}">{{ talla.prod_talla_codigo }}</button>
+              {% endif %}
+            {% endfor %}
+            <button id="mod-btn-agregar-carrito" class="btn btn-success ms-auto" data-prod-id="{{ producto.prod_id }}" data-stock-actual="{{ stock_actual }}" disabled>
+            Agregar a carrito
+            </button>
+          </div>
+          <div class="text-end mt-2">
+            <span id="mod-alert-agregar-carrito" class="ms-2 text-muted"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer border-top justify-content-end" style="background-color: #f8f9fa;">
+        <button type="button" class="btn btn-outline-warning px-4" data-bs-dismiss="modal">
+          CERRAR
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal para confirmar cantidad -->
+<div class="modal fade" id="modalConfirmacion" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3 shadow">
+      <!-- Header -->
+      <div class="modal-header justify-content-center border-bottom" style="background-color: #f8f9fa;">
+        <div class="text-center">
+          <div class="mb-1">
+            <i class="bx bx-cart text-white bg-danger rounded-circle p-2 fs-4"></i>
+          </div>
+          <h5 class="modal-title fw-semibold" id="modalConfirmacionLabel">Tu producto ha sido añadido al carrito</h5>
+        </div>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body d-flex align-items-center gap-3 px-4 py-5">
+        <!-- Imagen del producto -->
+        <img id="prodConfImagen" name="prodConfImagen" src="" alt="Producto" class="img-fluid" style="width: 100px; height: auto;">
+
+        <!-- Detalles del producto -->
+        <div class="flex-grow-1">
+          <small id="prodConfMarca" name="prodConfMarca" class="text-muted text-uppercase fw-bold"></small>
+          <p id="prodConfDescrip" name="prodConfDescrip" class="mb-1"></p>
+          <div class="d-flex align-items-center mb-2">
+            <strong id="prodConfPrecio" name="prodConfPrecio" class="text-danger fs-5"></strong>
+          </div>
+
+          <!-- Selector de cantidad -->
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm">-</button>
+            <input id="prodConfCant" name="prodConfCant" type="text" class="form-control form-control-sm text-center" value="1" style="width: 50px;" readonly>
+            <button class="btn btn-outline-secondary btn-sm">+</button>
+            <span id="prodConfStock" name="prodConfStock" class="ms-2 text-muted"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer d-flex justify-content-end gap-2 px-4 pb-4 border-top" style="background-color: #f8f9fa;">
+        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">SEGUIR COMPRANDO</button>
+        <a href="#" class="btn btn-danger text-white">IR AL CARRITO</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock%}
 
 {% block extra_js %}
+<script>
+  const CSRF_TOKEN = "{{ csrf_token }}";
+  const STATIC_URL_IMG = "{% static 'tienda/img/' %}";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="{% static 'catalogo/js/detalle_accesorio.js' %}"></script>
