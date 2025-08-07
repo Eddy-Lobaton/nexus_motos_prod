@@ -23,6 +23,7 @@ const swiper = new Swiper(".mySwiper", {
 });
 
 let tallaSeleccionada = null;
+let cantIniModTalla = 1;
 
 const btnAumentar = document.getElementById('btn-aumentar');
 const btnDisminuir = document.getElementById('btn-disminuir');
@@ -201,7 +202,7 @@ document.querySelectorAll('.mod-btn-talla').forEach(btn => {
         document.getElementById('mod-btn-agregar-carrito').dataset.stockActual = stockTalla;
         
         document.getElementById('modSpanStockActual').innerHTML = `Máximo ${stockTalla}  unidades.`;
-        let cantidad = parseInt(inputCantidad.value, 10)
+        let cantidad = cantIniModTalla;
         inputCantidad.dataset.max = stockTalla;
         if(cantidad > parseInt(stockTalla, 10)){
           inputCantidad.value = parseInt(stockTalla, 10);
@@ -220,6 +221,7 @@ document.getElementById('btn-agregar-carrito').addEventListener('click', functio
     const tallaActiva = document.querySelector('.btn-talla.active');
     
     if(cantTallas>0 && !tallaActiva && !tallaSeleccionada){
+      cantIniModTalla = inputCantidad.value;
       // Mostrar modal de selección de talla
       new bootstrap.Modal(document.getElementById('modalTalla')).show();
     }else{
