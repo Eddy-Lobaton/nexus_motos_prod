@@ -393,10 +393,8 @@ def agregar_a_carrito(request):
     carrito = request.session.get('carrito', {})
 
     if key in carrito:
-        stock = carrito[key]['stock']
         nueva_cantidad = carrito[key]['cantidad'] + cantidad
-        if stock_actual < stock:
-            carrito[key]['stock'] = stock_actual
+        carrito[key]['stock'] = stock_actual
         if nueva_cantidad > stock_actual:
             return JsonResponse({'success': False, 'mensaje': 'Stock insuficiente'})
         

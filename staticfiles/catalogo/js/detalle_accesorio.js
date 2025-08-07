@@ -23,7 +23,40 @@ const swiper = new Swiper(".mySwiper", {
 });
 
 let tallaSeleccionada = null;
-let cantidad = 1;
+
+const btnAumentar = document.getElementById('btn-aumentar');
+const btnDisminuir = document.getElementById('btn-disminuir');
+const inputCantidad = document.getElementById('cantidad');
+
+function actualizarBotones(cantidad) {
+  console.log("ddddddddddd")
+  console.log(inputCantidad.dataset.max)
+  let maxCantidad = parseInt(inputCantidad.dataset.max, 10);
+  btnDisminuir.disabled = cantidad <= 1;
+  btnAumentar.disabled = cantidad >= maxCantidad;
+}
+
+// Inicializa botones según el valor inicial
+actualizarBotones(parseInt(inputCantidad.value, 10));
+
+btnAumentar.addEventListener('click', function () {
+  let cantidad = parseInt(inputCantidad.value, 10);
+  let maxCantidad = parseInt(inputCantidad.dataset.max, 10);
+  if (cantidad < maxCantidad) {
+    cantidad++;
+    inputCantidad.value = cantidad;
+    actualizarBotones(cantidad);
+  }
+});
+
+btnDisminuir.addEventListener('click', function () {
+  let cantidad = parseInt(inputCantidad.value, 10);
+  if (cantidad > 1) {
+    cantidad--;
+    inputCantidad.value = cantidad;
+    actualizarBotones(cantidad);
+  }
+});
 
 function agregarACarrito(prodId, stockActual, talla, cantidad, modalTalla) {
     let btnAgregar;
@@ -142,6 +175,12 @@ document.querySelectorAll('.btn-talla').forEach(btn => {
         this.classList.add('active');
         document.getElementById('spanStockActual').innerText = stockTalla;
         document.getElementById('btn-agregar-carrito').dataset.stockActual = stockTalla;
+        let cantidad = parseInt(inputCantidad.value, 10)
+        inputCantidad.dataset.max = stockTalla;
+        if(cantidad > parseInt(stockTalla, 10)){
+          inputCantidad.value = parseInt(stockTalla, 10);
+        }
+        actualizarBotones(parseInt(inputCantidad.value, 10));
     });
 });
 
@@ -160,6 +199,14 @@ document.querySelectorAll('.mod-btn-talla').forEach(btn => {
         document.getElementById('spanStockActual').innerText = stockTalla;
         document.getElementById('btn-agregar-carrito').dataset.stockActual = stockTalla;
         document.getElementById('mod-btn-agregar-carrito').dataset.stockActual = stockTalla;
+        
+        document.getElementById('modSpanStockActual').innerHTML = `Máximo ${stockTalla}  unidades.`;
+        let cantidad = parseInt(inputCantidad.value, 10)
+        inputCantidad.dataset.max = stockTalla;
+        if(cantidad > parseInt(stockTalla, 10)){
+          inputCantidad.value = parseInt(stockTalla, 10);
+        }
+        actualizarBotones(parseInt(inputCantidad.value, 10));
     });
 });
 
@@ -176,7 +223,7 @@ document.getElementById('btn-agregar-carrito').addEventListener('click', functio
       // Mostrar modal de selección de talla
       new bootstrap.Modal(document.getElementById('modalTalla')).show();
     }else{
-      cantidad = document.getElementById("cantidad").value;
+      let cantidad = inputCantidad.value;
       agregarACarrito(prodId, stockActual, tallaSeleccionada, cantidad, false);
     }
 });
@@ -186,6 +233,6 @@ document.getElementById('mod-btn-agregar-carrito').addEventListener('click', fun
     document.getElementById('mod-alert-agregar-carrito').innerText = '';
     const prodId = this.dataset.prodId;
     const stockActual = parseInt(this.dataset.stockActual, 10);
-    cantidad = document.getElementById("cantidad").value;
+    let cantidad = inputCantidad.value;
     agregarACarrito(prodId, stockActual, tallaSeleccionada, cantidad, true);
 });
