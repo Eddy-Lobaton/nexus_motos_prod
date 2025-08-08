@@ -427,12 +427,46 @@ def agregar_a_carrito(request):
 
 def vista_carrito(request):
     carrito = request.session.get('carrito', {})
-    productos = list(carrito.values())
-    total = sum(item['precio'] * item['cantidad'] for item in productos)
-    cantidad_total = sum(item['cantidad'] for item in productos)
+
+    # Convertimos a una lista de tuplas (key, producto_dict)
+    productos = [
+        {
+            'key': key,
+            **item
+        }
+        for key, item in carrito.items()
+    ]
+
+    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
+    cantidad_total = sum(item['cantidad'] for item in carrito.values())
 
     return render(request, 'catalogo/carrito.html', {
         'productos': productos,
         'total': total,
         'cantidad_total': cantidad_total,
     })
+
+def eliminar_producto_carrito(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            key = data.get('key')
+
+            carrito = request.session.get('carrito', {})
+
+            if key in carrito:
+                del carrito[key]
+                request.session['carrito'] = carrito
+                
+                total_items = sum(item['cantidad'] for item in carrito.values())
+                request.session['carrito_total'] = total_items
+
+                request.session.modified = True
+
+                return JsonResponse({'success': True, 'total_items': total_items})
+            else:
+                return JsonResponse({'success': False, 'mensaje': 'Producto no encontrado en el carrito'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+        
+    return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
