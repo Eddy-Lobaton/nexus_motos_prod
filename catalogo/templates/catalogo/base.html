@@ -54,7 +54,7 @@ data-assets-path="{% static 'assets/' %}" data-template="vertical-menu-template-
                     </ul>
                     <ul class="navbar-nav">
                         <li class="nav-item me-3 d-flex align-items-center position-relative">
-                            <a class="nav-link" href="#"><i class="bx bx-cart fs-4"></i>
+                            <a href="{% url 'vista_carrito' %}" class="nav-link" href="#"><i class="bx bx-cart fs-4"></i>
                                 <span class="badge bg-danger rounded-circle position-absolute top-10 start-95 translate-middle" id="contador-carrito">
                                     {{ request.session.carrito_total|default:0 }}
                                 </span>

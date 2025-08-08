@@ -69,8 +69,7 @@
                                 <div class="card-body">
                                     <h6 class="text-danger fw-bold">{{ rel.prod_marca }}</h6>
                                     <p class="mb-1">{{ rel.prod_modelo }}</p>
-                                    <!-- <p class="fw-bold text-primary">S/. {{ rel.tblkardex.kardex_precio_vigente|floatformat:2 }}</p> -->
-                                    <p class="fw-bold text-primary">S/. 0.00</p>
+                                    <p class="fw-bold text-primary">S/. {{ rel.tblkardex.kardex_precio_vigente|floatformat:2 }}</p>
                                     <a href="{% url 'detalle_accesorio' rel.prod_id %}" class="btn btn-sm btn-outline-primary mt-2">Ver</a>
                                 </div>
                             </div>
@@ -194,7 +193,7 @@
       <!-- Footer -->
       <div class="modal-footer d-flex justify-content-end gap-2 px-4 pb-4 border-top" style="background-color: #f8f9fa;">
         <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">SEGUIR COMPRANDO</button>
-        <a href="#" class="btn btn-danger text-white">IR AL CARRITO</a>
+        <a href="{% url 'vista_carrito' %}" class="btn btn-danger text-white">IR AL CARRITO</a>
       </div>
     </div>
   </div>

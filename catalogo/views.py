@@ -319,11 +319,11 @@ def busqueda_accesorios(request):
         filtros &= Q(prod_codigo__in=categorias)
     if marcas:
         filtros &= Q(prod_marca__in=marcas)
-    #if precio_max:
-    #    filtros &= Q(tblkardex__kardex_precio_vigente__lte=precio_max)
+    if precio_max:
+        filtros &= Q(tblkardex__kardex_precio_vigente__lte=precio_max)
 
     try:
-        productos = TblProducto.objects.filter(filtros, prod_tipo='ACCESORIO', prod_estado=True)#.select_related('tblkardex')
+        productos = TblProducto.objects.filter(filtros, prod_tipo='ACCESORIO', prod_estado=True).select_related('tblkardex')
     except Exception as e:
         # Mostrar el error solo en la consola
         print("Error:")
@@ -338,7 +338,7 @@ def busqueda_accesorios(request):
             'tono': p.prod_tono,
             'marca': p.prod_marca,
             'categoria': p.prod_categoria,
-            'precio': '0.00', #float(p.tblkardex.kardex_precio_vigente),
+            'precio': float(p.tblkardex.kardex_precio_vigente),
             'imagen': p.prod_imagen  # asegúrate que sea URL accesible (usa MEDIA_URL si necesario)
         })
     
@@ -369,7 +369,7 @@ def detalle_accesorio(request, prod_id):
     return render(request, "catalogo/detalle_accesorio.html", {
         "producto": producto,
         "precio": precio,
-        "stock_actual": 5, #stock_actual
+        "stock_actual": stock_actual,
         "tallas": tallas,
         "relacionados": relacionados,
     })
@@ -423,4 +423,16 @@ def agregar_a_carrito(request):
         'success': True,
         'producto': carrito[key],
         'total_items': total_items
+    })
+
+def vista_carrito(request):
+    carrito = request.session.get('carrito', {})
+    productos = list(carrito.values())
+    total = sum(item['precio'] * item['cantidad'] for item in productos)
+    cantidad_total = sum(item['cantidad'] for item in productos)
+
+    return render(request, 'catalogo/carrito.html', {
+        'productos': productos,
+        'total': total,
+        'cantidad_total': cantidad_total,
     })
