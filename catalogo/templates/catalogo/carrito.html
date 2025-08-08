@@ -9,6 +9,7 @@
 <div class="container-fluid mt-4 mb-4">
     <div class="container py-5">
         <div class="row">
+            {% if total > 0 %}
             <!-- Carrito -->
             <div class="col-lg-8">
                 <h4 class="fw-bold mb-4">Carro ({{ cantidad_total }} productos)</h4>
@@ -64,6 +65,11 @@
                     <button class="btn btn-dark w-100 rounded-pill">Continuar compra</button>
                 </div>
             </div>
+            {% else %}
+            <div class="text-center">
+                <h4 class="text-secondary fw-bold">Tu Carrito está vacío</h4>
+            </div>
+            {% endif %}
         </div>
     </div>
 
