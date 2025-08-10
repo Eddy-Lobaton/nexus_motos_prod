@@ -23,16 +23,14 @@ const swiper = new Swiper(".mySwiper", {
 });
 
 let tallaSeleccionada = null;
-let cantIniModTalla = 1;
 
 const btnAumentar = document.getElementById('btn-aumentar');
 const btnDisminuir = document.getElementById('btn-disminuir');
 const inputCantidad = document.getElementById('cantidad');
+const btnAgregarCar = document.getElementById('btn-agregar-carrito');
 
 function actualizarBotones(cantidad) {
-  console.log("ddddddddddd")
-  console.log(inputCantidad.dataset.max)
-  let maxCantidad = parseInt(inputCantidad.dataset.max, 10);
+  let maxCantidad = parseInt(inputCantidad.dataset.max, 10) || 0;
   btnDisminuir.disabled = cantidad <= 1;
   btnAumentar.disabled = cantidad >= maxCantidad;
 }
@@ -42,7 +40,7 @@ actualizarBotones(parseInt(inputCantidad.value, 10));
 
 btnAumentar.addEventListener('click', function () {
   let cantidad = parseInt(inputCantidad.value, 10);
-  let maxCantidad = parseInt(inputCantidad.dataset.max, 10);
+  let maxCantidad = parseInt(inputCantidad.dataset.max, 10) || 0;
   if (cantidad < maxCantidad) {
     cantidad++;
     inputCantidad.value = cantidad;
@@ -59,16 +57,10 @@ btnDisminuir.addEventListener('click', function () {
   }
 });
 
-function agregarACarrito(prodId, stockActual, talla, cantidad, modalTalla) {
-    let btnAgregar;
-    if (modalTalla) {
-      btnAgregar = document.getElementById('mod-btn-agregar-carrito');
-    }else{
-      btnAgregar = document.getElementById('btn-agregar-carrito');
-    }
+function agregarACarrito(prodId, stockActual, talla, cantidad) {
     // Desactivar botón y mostrar spinner
-    btnAgregar.disabled = true;
-    btnAgregar.innerHTML = `
+    btnAgregarCar.disabled = true;
+    btnAgregarCar.innerHTML = `
         <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
         Agregando...
     `;
@@ -79,10 +71,7 @@ function agregarACarrito(prodId, stockActual, talla, cantidad, modalTalla) {
     const prodTono = document.getElementById("prodTono").value;
     const prodPrecio = document.getElementById("prodPrecio").value;
     const prodImagen = document.getElementById("prodImagen").value;
-
-    console.log("modalTalla")
-    console.log(modalTalla)
-
+    
     fetch('/catalogo/accesorio/agregar-a-carrito/', {
         method: 'POST',
         headers: {
@@ -105,33 +94,16 @@ function agregarACarrito(prodId, stockActual, talla, cantidad, modalTalla) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            if (modalTalla) {
-              const modalEl = document.getElementById('modalTalla');
-              const modal = bootstrap.Modal.getInstance(modalEl);
-              
-              // Escuchar el evento cuando el modal termina de cerrarse
-              const handleHidden = () => {
-                  mostrarModalConfirmacion(data.producto);
-                  modalEl.removeEventListener('hidden.bs.modal', handleHidden); // Limpia el listener
-              };
-
-              modalEl.addEventListener('hidden.bs.modal', handleHidden);
-              if (modal) modal.hide();
-            } else {
-              mostrarModalConfirmacion(data.producto);
-            }
-            actualizarCantidadCarrito(data.total_items);
+          mostrarModalConfirmacion(data.producto);
+          actualizarCantidadCarrito(data.total_items);
         } else {
-            document.getElementById('alert-agregar-carrito').innerHTML = `<i class="bx bx-error-circle text-warning"></i> ${data.mensaje}`;
-            if(modalTalla){
-              document.getElementById('mod-alert-agregar-carrito').innerHTML = `<i class="bx bx-error-circle text-warning"></i> ${data.mensaje}`;
-            }
+          document.getElementById('alert-agregar-carrito').innerHTML = `<i class="bx bx-error-circle text-warning"></i> ${data.mensaje}`;
         }
     })
     .finally(() => {
         // Restaurar botón al final
-        btnAgregar.disabled = false;
-        btnAgregar.innerHTML = 'Agregar a carrito';
+        btnAgregarCar.disabled = false;
+        btnAgregarCar.innerHTML = 'Agregar a carrito';
     });
 }
 
@@ -145,13 +117,19 @@ function mostrarModalConfirmacion(producto) {
   let descripcion = `${codigo} ${marca} ${modelo} ${tono}`;
   if (talla) {
     descripcion += `, ${talla}`;
+    document.querySelectorAll('.btn-talla').forEach(b => b.classList.remove('active'));
+    const btnTalla = document.querySelector(`.btn-talla[data-talla="${talla}"]`);
+    btnTalla.disabled = true;
+    inputCantidad.dataset.max = '';
+    btnAgregarCar.dataset.stockActual = '';
+    document.getElementById('spanStockActual').innerText = '';
   }
 
   // Formatear el precio con 2 decimales
   const precioFormateado = `S/. ${parseFloat(producto.precio || 0).toFixed(2)}`;
 
   // Mostrar
-  document.getElementById('prodConfImagen').src = `${STATIC_URL_IMG}${producto.imagen}`; // Ajusta la ruta si es necesario
+  document.getElementById('prodConfImagen').src = `${STATIC_URL_IMG}${producto.imagen}`;
   document.getElementById('prodConfMarca').textContent = producto.marca;
   document.getElementById('prodConfDescrip').textContent = descripcion;
   document.getElementById('prodConfPrecio').textContent = precioFormateado;
@@ -165,6 +143,10 @@ function mostrarModalConfirmacion(producto) {
   document.getElementById('prodConfStock').textContent = stockTexto;
 
   new bootstrap.Modal(document.getElementById('modalConfirmacion')).show();
+
+  // inicializar cantidad a 1
+  inputCantidad.value = 1;
+  actualizarBotones(1);
 }
 
 
@@ -174,10 +156,10 @@ document.querySelectorAll('.btn-talla').forEach(btn => {
         const stockTalla = this.dataset.stock;
         document.querySelectorAll('.btn-talla').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        document.getElementById('spanStockActual').innerText = stockTalla;
-        document.getElementById('btn-agregar-carrito').dataset.stockActual = stockTalla;
-        let cantidad = parseInt(inputCantidad.value, 10)
+        document.getElementById('spanStockActual').innerText = `Máximo ${stockTalla} unidades.`;
+        btnAgregarCar.dataset.stockActual = stockTalla;
         inputCantidad.dataset.max = stockTalla;
+        let cantidad = parseInt(inputCantidad.value, 10);
         if(cantidad > parseInt(stockTalla, 10)){
           inputCantidad.value = parseInt(stockTalla, 10);
         }
@@ -185,56 +167,26 @@ document.querySelectorAll('.btn-talla').forEach(btn => {
     });
 });
 
-document.querySelectorAll('.mod-btn-talla').forEach(btn => {
-    btn.addEventListener('click', function () {
-        tallaSeleccionada = this.dataset.talla;
-        const stockTalla = this.dataset.stock;
-        document.querySelectorAll('.mod-btn-talla').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const btnTalla = document.querySelector(`.btn-talla[data-talla="${tallaSeleccionada}"]`);
-        document.querySelectorAll('.btn-talla').forEach(b => b.classList.remove('active'));
-        btnTalla.classList.add('active');
-        // Habilitar el botón de agregar al carrito
-        document.getElementById('mod-btn-agregar-carrito').disabled = false;
-        //actualizar stock actual
-        document.getElementById('spanStockActual').innerText = stockTalla;
-        document.getElementById('btn-agregar-carrito').dataset.stockActual = stockTalla;
-        document.getElementById('mod-btn-agregar-carrito').dataset.stockActual = stockTalla;
-        
-        document.getElementById('modSpanStockActual').innerHTML = `Máximo ${stockTalla}  unidades.`;
-        let cantidad = cantIniModTalla;
-        inputCantidad.dataset.max = stockTalla;
-        if(cantidad > parseInt(stockTalla, 10)){
-          inputCantidad.value = parseInt(stockTalla, 10);
-        }
-        actualizarBotones(parseInt(inputCantidad.value, 10));
-    });
-});
 
-document.getElementById('btn-agregar-carrito').addEventListener('click', function () {
-    document.getElementById('alert-agregar-carrito').innerText = '';
-    document.getElementById('mod-alert-agregar-carrito').innerText = '';
+btnAgregarCar.addEventListener('click', function () {
+    const alertBox = document.getElementById('alert-agregar-carrito');
+    alertBox.innerText = '';
+
     const prodId = this.dataset.prodId;
     const cantTallas = parseInt(this.dataset.cantTallas, 10);
-    const stockActual = parseInt(this.dataset.stockActual, 10);
-    // Buscar si hay alguna talla activa
-    const tallaActiva = document.querySelector('.btn-talla.active');
-    
-    if(cantTallas>0 && !tallaActiva && !tallaSeleccionada){
-      cantIniModTalla = inputCantidad.value;
-      // Mostrar modal de selección de talla
-      new bootstrap.Modal(document.getElementById('modalTalla')).show();
-    }else{
-      let cantidad = inputCantidad.value;
-      agregarACarrito(prodId, stockActual, tallaSeleccionada, cantidad, false);
-    }
-});
+    const stockActual = parseInt(this.dataset.stockActual, 10) || 0;
+    const tallaActiva = document.querySelector('.btn-talla.active'); //buscar si hay una talla activa
+    const cantidad = inputCantidad.value;
 
-document.getElementById('mod-btn-agregar-carrito').addEventListener('click', function () {
-    document.getElementById('alert-agregar-carrito').innerText = '';
-    document.getElementById('mod-alert-agregar-carrito').innerText = '';
-    const prodId = this.dataset.prodId;
-    const stockActual = parseInt(this.dataset.stockActual, 10);
-    let cantidad = inputCantidad.value;
-    agregarACarrito(prodId, stockActual, tallaSeleccionada, cantidad, true);
+    if (cantTallas > 0 && (!tallaActiva || !tallaSeleccionada)) {
+        alertBox.innerHTML = `<i class="bx bx-error-circle text-warning"></i> Seleccione una talla`;
+        return;
+    }
+
+    if (stockActual <= 0) {
+        alertBox.innerHTML = `<i class="bx bx-error-circle text-warning"></i> Stock insuficiente`;
+        return;
+    }
+
+    agregarACarrito(prodId, stockActual, tallaSeleccionada, cantidad);
 });
