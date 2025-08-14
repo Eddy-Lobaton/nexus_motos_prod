@@ -140,7 +140,7 @@ STATIC_URL = 'static/'
 LOGIN_URL = '/login'
 
 #STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para producción (cuando haces collectstatic):  # para producción   
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 # Solo si estás usando archivos dentro de apps
@@ -149,7 +149,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 #]
 
 STATICFILES_DIRS = [
-    #os.path.join(BASE_DIR, 'staticfiles'),
+    os.path.join(BASE_DIR, 'staticfiles'),
 ]
 
 # Default primary key field type
@@ -162,9 +162,9 @@ AUTH_USER_MODEL = 'tienda.TblUsuario'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 CSRF_TRUSTED_ORIGINS = [
-    # 'https://nexusmotos-production.up.railway.app'
-    # 'https://web-production-dbe1d.up.railway.app'
-    'https://web-production-ec26b.up.railway.app'
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://web-production-ec26b.up.railway.app',  # el que ya tenías
 ]
 
 # Configuración básica de CORS
@@ -184,3 +184,30 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'nexusmotossac@gmail.com'
 EMAIL_HOST_PASSWORD = 'xqcv pjvj sour vlxh'
 EMAIL_USE_TLS = True
+
+# # === Mercado Pago ===
+# MERCADOPAGO_ACCESS_TOKEN = config('MP_ACCESS_TOKEN', default='')   # TEST-xxx (backend)
+# MERCADOPAGO_PUBLIC_KEY  = config('MP_PUBLIC_KEY', default='')      # TEST-xxx (frontend)
+
+# # URLs de retorno (para Checkout Pro)
+# MP_SUCCESS_URL   = config('MP_SUCCESS_URL',   default='http://localhost:8000/pagos/exito/')
+# MP_FAILURE_URL   = config('MP_FAILURE_URL',   default='http://localhost:8000/pagos/fallo/')
+# MP_PENDING_URL   = config('MP_PENDING_URL',   default='http://localhost:8000/pagos/pendiente/')
+
+# Webhook/Notificaciones (para confirmar pagos en backend)
+# En local necesitarás un túnel (ngrok/Cloudflare Tunnel). Por ahora dejamos un placeholder.
+MP_NOTIFICATION_URL = config('MP_NOTIFICATION_URL', default='http://localhost:8000/pagos/webhook/')
+
+
+# MERCADOPAGO_ACCESS_TOKEN = "TEST-7b5e762b-3323-4411-8d17-aa5ea536cc64"  # token de acceso
+# MERCADOPAGO_PUBLIC_KEY = "TEST-7311708455947733-081013-7b630b0c0744cfbdcbf2332277456e0c-2617286436"   # public key
+
+
+# === Mercado Pago ===
+MERCADOPAGO_ACCESS_TOKEN = "TEST-7311708455947733-081013-7b630b0c0744cfbdcbf2332277456e0c-2617286436"
+MERCADOPAGO_PUBLIC_KEY  = "TEST-7b5e762b-3323-4411-8d17-aa5ea536cc64"
+
+# URLs para redirección después del pago
+MP_SUCCESS_URL = "http://127.0.0.1:8000/pago/exitoso/"
+MP_FAILURE_URL = "http://127.0.0.1:8000/pago/fallido/"
+MP_PENDING_URL = "http://127.0.0.1:8000/pago/pendiente/"

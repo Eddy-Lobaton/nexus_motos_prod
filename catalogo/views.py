@@ -20,6 +20,10 @@ import random
 import string
 import os
 import json
+import mercadopago
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 def logout_no_cliente(view_func):
     @wraps(view_func)
@@ -470,3 +474,108 @@ def eliminar_producto_carrito(request):
             return JsonResponse({'success': False, 'mensaje': str(e)})
         
     return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
+
+@csrf_exempt  # solo para pruebas, en producción mejor usar token CSRF
+def crear_preferencia_mp(request):
+    if request.method == "POST":
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+
+        preference_data = {
+            "items": [
+                {
+                    "title": "Compra en Nexus Motos",
+                    "quantity": 1,
+                    "currency_id": "PEN",
+                    "unit_price": 100.00
+                }
+            ],
+            "back_urls": {
+                "success": settings.MP_SUCCESS_URL,
+                "failure": settings.MP_FAILURE_URL,
+                "pending": settings.MP_PENDING_URL
+            },
+            "auto_return": "approved"
+        }
+
+        result = sdk.preference().create(preference_data)
+
+        if result["status"] == 201:
+            return JsonResponse({"id": result["response"]["id"]})
+        else:
+            return JsonResponse({"error": result}, status=400)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+def iniciar_pago_mp(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "JSON inválido"}, status=400)
+
+        total = data.get("total")
+        if not total:
+            return JsonResponse({"error": "Falta total"}, status=400)
+
+        # Construir URLs de retorno dinámicamente
+        success_url = request.build_absolute_uri(reverse('checkout_exito'))
+        failure_url = request.build_absolute_uri(reverse('checkout_fallo'))
+        pending_url = request.build_absolute_uri(reverse('checkout_pendiente'))
+
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+
+        preference_data = {
+            "items": [
+                {
+                    "title": "Compra en mi tienda",
+                    "quantity": 1,
+                    "currency_id": "PEN",
+                    "unit_price": float(total)
+                }
+            ],
+            "back_urls": {
+                "success": success_url,
+                "failure": failure_url,
+                "pending": pending_url
+
+            },
+            "auto_return": "approved"
+        }
+        print("Success URL:", success_url)
+        print("Failure URL:", failure_url)
+        print("Pending URL:", pending_url)
+        preference = sdk.preference().create(preference_data)
+        print("Respuesta MercadoPago:", preference)
+
+        if preference.get("status") == 200:
+            return JsonResponse({"init_point": preference["response"]["init_point"]})
+        else:
+            return JsonResponse({
+                "error": "Error creando preferencia",
+                "detalle": preference
+            }, status=400)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
+@csrf_exempt
+def mp_webhook(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        print("Webhook recibido:", data)
+        return HttpResponse(status=200)
+    return HttpResponse(status=405)
+
+@login_required
+def checkout_exito(request):
+    return render(request, 'catalogo/checkout_exito.html')
+
+@login_required
+def checkout_fallo(request):
+    return render(request, 'catalogo/checkout_fallo.html')
+
+
+@login_required
+def checkout_pendiente(request):
+    return render(request, 'catalogo/checkout_pendiente.html')
+
