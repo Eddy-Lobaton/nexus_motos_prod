@@ -33,5 +33,4 @@ urlpatterns = [
     path('checkout/fallo/', views.checkout_fallo, name='checkout_fallo'),
     path('checkout/pendiente/', views.checkout_pendiente, name='checkout_pendiente'),
 
-    path("crear-preferencia/", views.crear_preferencia_mp, name="crear_preferencia_mp"),
 ]
