@@ -21,6 +21,35 @@ from decouple import config #conectar railway
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEBUG = config('DEBUG', default=False, cast=bool)  #True para desarrollo local y False para RAILWAY... 
+
+STATIC_URL = 'static/'
+
+if DEBUG:
+    # Modo local: usas STATICFILES_DIRS para apuntar a la carpeta donde guardas tus CSS/JS
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',  # carpeta que usas en desarrollo
+    ]
+else:
+    # Modo producción: collectstatic pondrá todos aquí
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
+LOGIN_URL = '/login'
+
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'staticfiles'),
+# ]
+
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+
+ALLOWED_HOSTS = ['*']
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -28,10 +57,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-oxhj21oz3%9(&l3!%2(my@tqnzj8@@)n_0gt-l6!b9epc2jp1v'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)  #True para desarrollo local y False para RAILWAY... 
-
-ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -132,26 +157,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-LOGIN_URL = '/login'
-
-#STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para producción (cuando haces collectstatic):  # para producción   
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-
-# Solo si estás usando archivos dentro de apps
-#STATICFILES_DIRS = [
-#    BASE_DIR / 'tienda' / 'static',
-#]
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'staticfiles'),
-]
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -159,12 +164,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'tienda.TblUsuario'
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://web-production-ec26b.up.railway.app',  # el que ya tenías
+    'https://nexus-motos-prod.onrender.com',  # el que ya tenías
 ]
 
 # Configuración básica de CORS
