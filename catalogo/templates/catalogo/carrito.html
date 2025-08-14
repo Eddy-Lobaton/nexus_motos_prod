@@ -69,31 +69,33 @@
 {% block extra_js %}
 <script>
     const CSRF_TOKEN = '{{ csrf_token }}';
-    const TOTAL_CARRITO = {{ total|floatformat:2 }};
-</script>
-<script>
-document.getElementById('btnPagar').addEventListener('click', function() {
-    fetch("{% url 'iniciar_pago_mp' %}", {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': CSRF_TOKEN,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ total: TOTAL_CARRITO })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.init_point){
-            window.location.href = data.init_point;
-        } else {
-            alert('Error iniciando el pago.');
-            console.error(data);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error en la conexión con el servidor.');
+
+    document.getElementById('btnPagar').addEventListener('click', function() {
+        // Obtenemos el total desde el HTML
+        let totalTexto = "{{ total|floatformat:2 }}";
+        let total = parseFloat(totalTexto.replace(',', '.'));
+
+        fetch("{% url 'iniciar_pago_mp' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': CSRF_TOKEN,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ total: total }) // 👈 Enviamos el total
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.init_point) {
+                window.location.href = data.init_point; // Redirige a MercadoPago
+            } else {
+                console.error('Error en la respuesta:', data);
+                alert('Error iniciando el pago con MercadoPago.');
+            }
+        })
+        .catch(error => {
+            console.error('Error de conexión:', error);
+            alert('Error en la conexión con el servidor.');
+        });
     });
-});
 </script>
 {% endblock %}

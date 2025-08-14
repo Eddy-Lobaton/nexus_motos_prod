@@ -476,87 +476,58 @@ def eliminar_producto_carrito(request):
     return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
 
 @csrf_exempt  # solo para pruebas, en producción mejor usar token CSRF
-def crear_preferencia_mp(request):
-    if request.method == "POST":
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
-
-        preference_data = {
-            "items": [
-                {
-                    "title": "Compra en Nexus Motos",
-                    "quantity": 1,
-                    "currency_id": "PEN",
-                    "unit_price": 100.00
-                }
-            ],
-            "back_urls": {
-                "success": settings.MP_SUCCESS_URL,
-                "failure": settings.MP_FAILURE_URL,
-                "pending": settings.MP_PENDING_URL
-            },
-            "auto_return": "approved"
-        }
-
-        result = sdk.preference().create(preference_data)
-
-        if result["status"] == 201:
-            return JsonResponse({"id": result["response"]["id"]})
-        else:
-            return JsonResponse({"error": result}, status=400)
-
-    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 def iniciar_pago_mp(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "JSON inválido"}, status=400)
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido"}, status=405)
 
-        total = data.get("total")
-        if not total:
-            return JsonResponse({"error": "Falta total"}, status=400)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido"}, status=400)
 
-        # Construir URLs de retorno dinámicamente
-        success_url = request.build_absolute_uri(reverse('checkout_exito'))
-        failure_url = request.build_absolute_uri(reverse('checkout_fallo'))
-        pending_url = request.build_absolute_uri(reverse('checkout_pendiente'))
+    total = data.get("total")
+    if not total:
+        return JsonResponse({"error": "Falta el total"}, status=400)
 
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+    # Construir URLs absolutas dinámicamente
+    success_url = request.build_absolute_uri(reverse('pago_exitoso'))
+    failure_url = request.build_absolute_uri(reverse('pago_fallido'))
+    pending_url = request.build_absolute_uri(reverse('pago_pendiente'))
 
-        preference_data = {
-            "items": [
-                {
-                    "title": "Compra en mi tienda",
-                    "quantity": 1,
-                    "currency_id": "PEN",
-                    "unit_price": float(total)
-                }
-            ],
-            "back_urls": {
-                "success": success_url,
-                "failure": failure_url,
-                "pending": pending_url
+    print("Success URL:", success_url)
+    print("Failure URL:", failure_url)
+    print("Pending URL:", pending_url)
 
-            },
-            "auto_return": "approved"
-        }
-        print("Success URL:", success_url)
-        print("Failure URL:", failure_url)
-        print("Pending URL:", pending_url)
-        preference = sdk.preference().create(preference_data)
-        print("Respuesta MercadoPago:", preference)
+    sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
-        if preference.get("status") == 200:
-            return JsonResponse({"init_point": preference["response"]["init_point"]})
-        else:
-            return JsonResponse({
-                "error": "Error creando preferencia",
-                "detalle": preference
-            }, status=400)
+    preference_data = {
+        "items": [
+            {
+                "title": "Compra en Nexus Motos",
+                "quantity": 1,
+                "currency_id": "PEN",
+                "unit_price": float(total)
+            }
+        ],
+        "back_urls": {
+            "success": success_url,
+            "failure": failure_url,
+            "pending": pending_url
+        },
+        "auto_return": "approved"
+    }
 
-    return JsonResponse({"error": "Método no permitido"}, status=405)
+    preference = sdk.preference().create(preference_data)
 
+    # Validar respuesta de MP
+    if preference.get("status") != 201:
+        return JsonResponse({
+            "error": "Error creando preferencia",
+            "detalle": preference
+        }, status=400)
+
+    return JsonResponse({"init_point": preference["response"]["init_point"]})
 
 @csrf_exempt
 def mp_webhook(request):
